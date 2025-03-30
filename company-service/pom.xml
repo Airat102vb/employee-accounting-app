@@ -7,7 +7,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>CompanyService</artifactId>
+    <artifactId>company-service</artifactId>
     <packaging>jar</packaging>
 
     <name>CompanyService</name>
