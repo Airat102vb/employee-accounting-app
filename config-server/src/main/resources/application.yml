@@ -12,4 +12,4 @@ spring:
           clone-on-start: true
           default-label: main
           search-paths:
-            - '{application}/{profile}'
+            - '{application}-{profile}'
