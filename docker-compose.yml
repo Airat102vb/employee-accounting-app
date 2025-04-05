@@ -1,0 +1,25 @@
+services:
+
+  db-user:
+    container_name: user-demo-db
+    image: postgres
+    restart: unless-stopped
+    shm_size: 128mb
+    ports:
+      - "5431:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./user-service/src/main/resources/db:/docker-entrypoint-initdb.d
+
+  db-company:
+    container_name: company-demo-db
+    image: postgres
+    restart: unless-stopped
+    shm_size: 128mb
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./company-service/src/main/resources/db:/docker-entrypoint-initdb.d
