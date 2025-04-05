@@ -1,6 +1,6 @@
 spring:
   application:
-    name: user-service
+    name: company-service
   config:
     import: optional:configserver:http://localhost:8888
 
@@ -9,3 +9,7 @@ management:
     web:
       exposure:
         include: env, health, configprops
+
+logging:
+  level:
+    org.springframework.cloud: DEBUG

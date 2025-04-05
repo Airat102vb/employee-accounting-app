@@ -13,3 +13,7 @@ spring:
           default-label: main
           search-paths:
             - '{application}-{profile}'
+
+logging:
+  level:
+    org.springframework.cloud: DEBUG

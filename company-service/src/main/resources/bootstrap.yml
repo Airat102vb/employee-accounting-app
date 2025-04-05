@@ -8,9 +8,4 @@ spring:
     config:
       uri: http://localhost:8888
       fail-fast: true
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: env
+      enabled: true
