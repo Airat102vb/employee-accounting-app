@@ -23,3 +23,99 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - ./company-service/src/main/resources/db:/docker-entrypoint-initdb.d
+
+#  # Сервис обнаружения
+#  eureka-server:
+#    container_name: eureka-server
+#    image: openjdk:21-jdk-slim
+#    restart: unless-stopped
+#    ports:
+#      - "8761:8761"
+#    volumes:
+#      - ./eureka-server/target/eureka-server-0.0.1-SNAPSHOT.jar:/app.jar
+#    command: java -jar /app.jar
+#    healthcheck:
+#      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 10
+#    depends_on:
+#      - db-user
+#      - db-company
+
+#  # Сервис конфигурации
+#  config-service:
+#    container_name: config-service
+#    image: openjdk:21-jdk-slim
+#    restart: unless-stopped
+#    ports:
+#      - "8888:8888"
+#    volumes:
+#      - ./config-server/target/config-server-0.0.1-SNAPSHOT.jar:/app.jar
+#    command: java -jar /app.jar
+#    depends_on:
+#      - eureka-server
+#
+#  # User Service
+#  user-service:
+#    container_name: user-service
+#    image: openjdk:21-jdk-slim
+#    restart: unless-stopped
+#    volumes:
+#      - ./user-service/target/user-service-0.0.1-SNAPSHOT.jar:/app.jar
+#    command: java -jar /app.jar
+#    depends_on:
+#      - config-service
+#      - eureka-server
+#      - db-user
+#    environment:
+#      SPRING_PROFILES_ACTIVE: docker
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://db-user:5431/postgres
+#      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+#      CONFIG_SERVICE_URI: http://config-service:8888
+#      EUREKA_CLIENT_REGISTER-WITH-EUREKA: true
+#      EUREKA_CLIENT_FETCH-REGISTRY: true
+#
+#  # Company Service
+#  company-service:
+#    container_name: company-service
+#    image: openjdk:21-jdk-slim
+#    restart: unless-stopped
+#    volumes:
+#      - ./company-service/target/company-service-0.0.1-SNAPSHOT.jar:/app.jar
+#    command: java -jar /app.jar
+#    depends_on:
+#      - config-service
+#      - eureka-server
+#      - db-company
+#    environment:
+#      SPRING_PROFILES_ACTIVE: docker
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://db-company:5432/postgres
+#      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+#      CONFIG_SERVICE_URI: http://config-service:8888
+#      EUREKA_CLIENT_REGISTER-WITH-EUREKA: true
+#      EUREKA_CLIENT_FETCH-REGISTRY: true
+#
+#  # API Gateway
+#  gateway-service:
+#    container_name: gateway-service
+#    image: openjdk:21-jdk-slim
+#    restart: unless-stopped
+#    ports:
+#      - "8082:8080"
+#    volumes:
+#      - ./api-gateway/target/api-gateway-0.0.1-SNAPSHOT.jar:/app.jar
+#    command: java -jar /app.jar
+#    depends_on:
+#      eureka-server:
+#        condition: service_healthy
+#    environment:
+#      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+#      SPRING_CLOUD_CONFIG_URI: http://config-service:8888
+#      EUREKA_CLIENT_REGISTER-WITH-EUREKA: true
+#      EUREKA_CLIENT_FETCH-REGISTRY: true
+
+networks:
+  default:
+    name: spring-cloud-network
+    driver: bridge
