@@ -1,4 +1,4 @@
-package pet.project.config.dto;
+package pet.project.dto;
 
 public record UserDto(
     Integer id,

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import pet.project.config.dto.UserDto;
+import pet.project.dto.UserDto;
 import pet.project.dao.UserRepository;
 
 @RestController

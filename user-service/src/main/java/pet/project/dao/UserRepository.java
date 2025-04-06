@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import pet.project.config.dto.UserDto;
+import pet.project.dto.UserDto;
 
 @Repository
 public class UserRepository {
