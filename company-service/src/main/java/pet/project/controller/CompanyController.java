@@ -10,8 +10,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import pet.project.CompanyDto;
 import pet.project.dao.CompanyRepository;
+import pet.project.dto.CompanyDto;
+import pet.project.dto.CompanyWithUsersDto;
 
 @RestController
 public class CompanyController {
@@ -45,7 +46,13 @@ public class CompanyController {
 
   @GetMapping("/get")
   public ResponseEntity getCompany(@QueryParam(value = "companyId") String companyId) {
-    CompanyDto company = companyRepository.getCompanyById(companyId);
+    CompanyWithUsersDto company = companyRepository.getCompanyById(companyId);
+    return ResponseEntity.ok(company);
+  }
+
+  @GetMapping("/get-by-user")
+  public ResponseEntity getCompanyByUser(@QueryParam(value = "employeeId") String employeeId) {
+    CompanyDto company = companyRepository.getCompanyByUserId(employeeId);
     return ResponseEntity.ok(company);
   }
 

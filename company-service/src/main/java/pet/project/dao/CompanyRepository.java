@@ -12,22 +12,64 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
-import pet.project.CompanyDto;
+import pet.project.clients.UserServiceClient;
+import pet.project.dto.CompanyDto;
+import pet.project.dto.CompanyWithUsersDto;
+import pet.project.dto.UserDto;
 
 @Repository
 public class CompanyRepository {
 
   private final Logger logger = LoggerFactory.getLogger("UserRepository");
   private DataSource dataSource;
+  private UserServiceClient userServiceClient;
 
   @Autowired
-  public CompanyRepository(DataSource dataSource) {
+  public CompanyRepository(DataSource dataSource, UserServiceClient userServiceClient) {
     this.dataSource = dataSource;
+    this.userServiceClient = userServiceClient;
   }
 
-  public CompanyDto getCompanyById(String companyId) {
+  public void someMethod() {
+    ResponseEntity<UserDto> response = userServiceClient.getUser("123");
+    UserDto user = response.getBody();
+  }
+
+  public CompanyWithUsersDto getCompanyById(String companyId) {
     List<Integer> employeeIds = getEmployeesOfCompany(companyId);
+    try (Connection connection = dataSource.getConnection()) {
+      Statement statement = connection.createStatement();
+      String sql = "SELECT * FROM companies WHERE id = %s".formatted(companyId);
+      logger.info("Выполняется запрос: \n{}", sql);
+      ResultSet resultSet = statement.executeQuery(sql);
+
+      if (resultSet.next()) {
+        var employees =
+            employeeIds.stream()
+                .map(
+                    id -> {
+                      ResponseEntity<UserDto> response =
+                          userServiceClient.getUser(String.valueOf(id));
+                      return response.getBody();
+                    })
+                .toList();
+
+        return new CompanyWithUsersDto(
+            resultSet.getInt("id"),
+            resultSet.getString("company_name"),
+            resultSet.getBigDecimal("budget"),
+            employees);
+      }
+      return new CompanyWithUsersDto(null, null, null, null);
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public CompanyDto getCompanyByUserId(String employeeId) {
+    Integer companyId = getCompanyOfEmployee(employeeId);
     try (Connection connection = dataSource.getConnection()) {
       Statement statement = connection.createStatement();
       String sql = "SELECT * FROM companies WHERE id = %s".formatted(companyId);
@@ -39,7 +81,7 @@ public class CompanyRepository {
             resultSet.getInt("id"),
             resultSet.getString("company_name"),
             resultSet.getBigDecimal("budget"),
-            employeeIds);
+            List.of(Integer.parseInt(employeeId)));
       }
       return new CompanyDto(null, null, null, null);
     } catch (SQLException e) {
@@ -64,6 +106,23 @@ public class CompanyRepository {
     }
   }
 
+  private Integer getCompanyOfEmployee(String employeeId) {
+    List<Integer> ids = new LinkedList<>();
+    try (Connection connection = dataSource.getConnection()) {
+      Statement statement = connection.createStatement();
+      String sql = "SELECT * FROM company_employees WHERE employee_id = %s".formatted(employeeId);
+      logger.info("Выполняется запрос: \n{}", sql);
+      ResultSet resultSet = statement.executeQuery(sql);
+
+      if (resultSet.next()) {
+        return resultSet.getInt("company_id");
+      }
+      return null;
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public int insertCompany(CompanyDto company) {
     String sql = "INSERT INTO companies (company_name, budget) VALUES (?, ?)";
     try (PreparedStatement statement =
@@ -77,9 +136,7 @@ public class CompanyRepository {
         if (generatedKeys.next()) {
           int companyId = generatedKeys.getInt(1);
           if (Objects.nonNull(company.employeeId()) && company.employeeId().size() != 0) {
-            company
-                .employeeId()
-                .stream()
+            company.employeeId().stream()
                 .forEach(employeeId -> insertEmployeeToCompany(companyId, employeeId));
           }
           return companyId;
@@ -194,8 +251,8 @@ public class CompanyRepository {
     }
   }
 
-  public List<CompanyDto> getAllCompanies() {
-    List<CompanyDto> companies = new LinkedList<>();
+  public List<CompanyWithUsersDto> getAllCompanies() {
+    List<CompanyWithUsersDto> companies = new LinkedList<>();
     try (Connection connection = dataSource.getConnection()) {
       Statement statement = connection.createStatement();
       String sql = "SELECT * FROM companies;";
@@ -205,12 +262,22 @@ public class CompanyRepository {
       while (resultSet.next()) {
         int companyId = resultSet.getInt("id");
         List<Integer> employeeIds = getEmployeesOfCompany(String.valueOf(companyId));
+        var employees =
+            employeeIds.stream()
+                .map(
+                    id -> {
+                      ResponseEntity<UserDto> response =
+                          userServiceClient.getUser(String.valueOf(id));
+                      return response.getBody();
+                    })
+                .toList();
+
         companies.add(
-            new CompanyDto(
+            new CompanyWithUsersDto(
                 companyId,
                 resultSet.getString("company_name"),
                 resultSet.getBigDecimal("budget"),
-                employeeIds));
+                employees));
       }
       return companies;
     } catch (SQLException e) {

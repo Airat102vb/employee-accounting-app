@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import pet.project.dto.UserDto;
 import pet.project.dao.UserRepository;
+import pet.project.dto.UserWithCompanyDto;
 
 @RestController
 public class UserController {
@@ -21,11 +22,6 @@ public class UserController {
   @Autowired
   public UserController(UserRepository userRepository) {
     this.userRepository = userRepository;
-  }
-
-  @GetMapping("/test")
-  public String test() {
-    return "test";
   }
 
   @PostMapping("/add")
@@ -39,7 +35,7 @@ public class UserController {
 
   @GetMapping("/get")
   public ResponseEntity getUser(@QueryParam(value = "userId") String userId) {
-    UserDto user = userRepository.getUserById(userId);
+    UserWithCompanyDto user = userRepository.getUserById(userId);
     return ResponseEntity.ok(user);
   }
 

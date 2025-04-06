@@ -12,20 +12,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import pet.project.clients.CompanyServiceClient;
+import pet.project.dto.CompanyDto;
 import pet.project.dto.UserDto;
+import pet.project.dto.UserWithCompanyDto;
 
 @Repository
 public class UserRepository {
 
   private final Logger logger = LoggerFactory.getLogger("UserRepository");
   private DataSource dataSource;
+  private CompanyServiceClient companyServiceClient;
 
   @Autowired
-  public UserRepository(DataSource dataSource) {
+  public UserRepository(DataSource dataSource, CompanyServiceClient companyServiceClient) {
     this.dataSource = dataSource;
+    this.companyServiceClient = companyServiceClient;
   }
 
-  public UserDto getUserById(String userId) {
+  public UserWithCompanyDto getUserById(String userId) {
     try (Connection connection = dataSource.getConnection()) {
       Statement statement = connection.createStatement();
       String sql = "SELECT * FROM users WHERE id = %s".formatted(userId);
@@ -33,14 +38,15 @@ public class UserRepository {
       ResultSet resultSet = statement.executeQuery(sql);
 
       if (resultSet.next()) {
-        return new UserDto(
+        CompanyDto company = companyServiceClient.getCompanyByUser(userId).getBody();
+        return new UserWithCompanyDto(
             resultSet.getInt("id"),
             resultSet.getString("first_name"),
             resultSet.getString("last_name"),
-            null,
-            null);
+            resultSet.getString("phone_number"),
+            company.companyName());
       }
-      return new UserDto(null, null, null, null, null);
+      return new UserWithCompanyDto(null, null, null, null, null);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -113,7 +119,7 @@ public class UserRepository {
     String sql = "DELETE FROM users WHERE id = ?";
 
     try (Connection connection = dataSource.getConnection();
-         PreparedStatement statement = connection.prepareStatement(sql)) {
+        PreparedStatement statement = connection.prepareStatement(sql)) {
 
       statement.setInt(1, Integer.parseInt(userId));
       logger.info("Выполняется запрос: {} с параметром userId = {}", sql, userId);
@@ -134,8 +140,8 @@ public class UserRepository {
     }
   }
 
-  public List<UserDto> getAllUsers() {
-    List<UserDto> users = new LinkedList<>();
+  public List<UserWithCompanyDto> getAllUsers() {
+    List<UserWithCompanyDto> users = new LinkedList<>();
     try (Connection connection = dataSource.getConnection()) {
       Statement statement = connection.createStatement();
       String sql = "SELECT * FROM users;";
@@ -143,13 +149,15 @@ public class UserRepository {
       ResultSet resultSet = statement.executeQuery(sql);
 
       while (resultSet.next()) {
+        Integer userId = resultSet.getInt("id");
+        CompanyDto company = companyServiceClient.getCompanyByUser(userId.toString()).getBody();
         users.add(
-            new UserDto(
+            new UserWithCompanyDto(
                 resultSet.getInt("id"),
                 resultSet.getString("first_name"),
                 resultSet.getString("last_name"),
-                null,
-                null));
+                resultSet.getString("phone_number"),
+                company.companyName()));
       }
       return users;
     } catch (SQLException e) {

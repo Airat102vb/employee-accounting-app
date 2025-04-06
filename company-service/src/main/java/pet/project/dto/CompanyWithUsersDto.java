@@ -1,11 +1,11 @@
-package pet.project;
+package pet.project.dto;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-public record CompanyDto(
+public record CompanyWithUsersDto(
     Integer id,
     String companyName,
     BigDecimal budget,
-    List<Integer> employeeId
+    List<UserDto> employees
 ) {}
