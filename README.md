@@ -4,6 +4,8 @@ Pet-project based on Spring Cloud technologies (WIP)
 
 <b>Architecture description</b> 
 
+There are two profiles for start: local; docker.
+
 API-GATEWAY is up on port 8082
 
 ---

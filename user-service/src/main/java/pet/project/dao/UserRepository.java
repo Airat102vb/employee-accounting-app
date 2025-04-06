@@ -39,7 +39,7 @@ public class UserRepository {
                 null
         );
       }
-      return null;
+      return new UserDto(null, null, null, null, null );
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -52,6 +52,7 @@ public class UserRepository {
       statement.setString(2, user.lastName());
       statement.setString(3, user.phoneNumber());
       statement.setInt(4, user.companyId());
+      logger.info("Выполняется запрос: \n{}", sql);
       statement.executeUpdate();
 
       try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
