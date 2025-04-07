@@ -14,3 +14,16 @@ eureka:
   instance:
     lease-renewal-interval-in-seconds: 5
     lease-expiration-duration-in-seconds: 10
+    preferIpAddress: true
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://eureka-server:8761/eureka/}
+    registerWithEureka: true
+    fetchRegistry: true
+    healthcheck:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.cloud: DEBUG
+    com.netflix.discovery: DEBUG
