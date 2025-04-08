@@ -1,34 +1,33 @@
 services:
 
-#  db-user:
-#    container_name: user-demo-db
-#    image: postgres
-#    restart: unless-stopped
-#    shm_size: 128mb
-#    ports:
-#      - "5431:5432"
-#    environment:
-#      POSTGRES_PASSWORD: postgres
-#    networks:
-#      - spring-cloud-network
-#    volumes:
-#      - ./user-service/src/main/resources/db:/docker-entrypoint-initdb.d
-#
-#  db-company:
-#    container_name: company-demo-db
-#    image: postgres
-#    restart: unless-stopped
-#    shm_size: 128mb
-#    ports:
-#      - "5432:5432"
-#    environment:
-#      POSTGRES_PASSWORD: postgres
-#    networks:
-#      - spring-cloud-network
-#    volumes:
-#      - ./company-service/src/main/resources/db:/docker-entrypoint-initdb.d
+  db-user:
+    container_name: user-demo-db
+    image: postgres
+    restart: unless-stopped
+    shm_size: 128mb
+    ports:
+      - "5431:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - spring-cloud-network
+    volumes:
+      - ./user-service/src/main/resources/db:/docker-entrypoint-initdb.d
 
-  # Сервис обнаружения
+  db-company:
+    container_name: company-demo-db
+    image: postgres
+    restart: unless-stopped
+    shm_size: 128mb
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - spring-cloud-network
+    volumes:
+      - ./company-service/src/main/resources/db:/docker-entrypoint-initdb.d
+
   eureka-server:
     container_name: eureka-server
     image: openjdk:21-jdk-slim
@@ -50,7 +49,6 @@ services:
         retries: 10
         start_period: 30s
 
-  # Сервис конфигурации
   config-server:
     container_name: config-server
     image: openjdk:21-jdk-slim
@@ -73,7 +71,6 @@ services:
     networks:
       - spring-cloud-network
 
-  # User Service
   user-service:
     container_name: user-service
     image: openjdk:21-jdk-slim
@@ -87,12 +84,10 @@ services:
       - db-user
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      CONFIG_SERVICE_URI: http://config-service:8888
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      CONFIG_SERVICE_URI: http://config-server:8888
     networks:
       - spring-cloud-network
 
-  # Company Service
   company-service:
     container_name: company-service
     image: openjdk:21-jdk-slim
@@ -106,14 +101,12 @@ services:
       - db-company
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      CONFIG_SERVICE_URI: http://config-service:8888
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      CONFIG_SERVICE_URI: http://config-server:8888
     networks:
       - spring-cloud-network
 
-  # API Gateway
-  gateway-service:
-    container_name: gateway-service
+  api-gateway:
+    container_name: api-gateway
     image: openjdk:21-jdk-slim
     restart: unless-stopped
     ports:
@@ -128,6 +121,7 @@ services:
       - company-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      CONFIG_SERVICE_URI: http://config-server:8888
     networks:
       - spring-cloud-network
 

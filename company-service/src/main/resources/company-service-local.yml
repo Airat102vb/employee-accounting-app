@@ -1,6 +1,0 @@
-spring:
-  cloud:
-    config:
-      import: optional:configserver:http://localhost:8888
-      fail-fast: true
-      enabled: true

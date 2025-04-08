@@ -13,6 +13,8 @@ spring:
           default-label: main
           search-paths:
             - '{application}-{profile}'
+      discovery:
+        enabled: true
 
 logging:
   level:
