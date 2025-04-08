@@ -1,32 +1,32 @@
 services:
 
-  db-user:
-    container_name: user-demo-db
-    image: postgres
-    restart: unless-stopped
-    shm_size: 128mb
-    ports:
-      - "5431:5432"
-    environment:
-      POSTGRES_PASSWORD: postgres
-    networks:
-      - spring-cloud-network
-    volumes:
-      - ./user-service/src/main/resources/db:/docker-entrypoint-initdb.d
-
-  db-company:
-    container_name: company-demo-db
-    image: postgres
-    restart: unless-stopped
-    shm_size: 128mb
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_PASSWORD: postgres
-    networks:
-      - spring-cloud-network
-    volumes:
-      - ./company-service/src/main/resources/db:/docker-entrypoint-initdb.d
+#  db-user:
+#    container_name: user-demo-db
+#    image: postgres
+#    restart: unless-stopped
+#    shm_size: 128mb
+#    ports:
+#      - "5431:5432"
+#    environment:
+#      POSTGRES_PASSWORD: postgres
+#    networks:
+#      - spring-cloud-network
+#    volumes:
+#      - ./user-service/src/main/resources/db:/docker-entrypoint-initdb.d
+#
+#  db-company:
+#    container_name: company-demo-db
+#    image: postgres
+#    restart: unless-stopped
+#    shm_size: 128mb
+#    ports:
+#      - "5432:5432"
+#    environment:
+#      POSTGRES_PASSWORD: postgres
+#    networks:
+#      - spring-cloud-network
+#    volumes:
+#      - ./company-service/src/main/resources/db:/docker-entrypoint-initdb.d
 
   # Сервис обнаружения
   eureka-server:
@@ -51,8 +51,8 @@ services:
         start_period: 30s
 
   # Сервис конфигурации
-  config-service:
-    container_name: config-service
+  config-server:
+    container_name: config-server
     image: openjdk:21-jdk-slim
     restart: unless-stopped
     ports:
@@ -82,7 +82,7 @@ services:
       - ./user-service/target/user-service-0.0.1-SNAPSHOT.jar:/app.jar
     command: java -jar /app.jar
     depends_on:
-      - config-service
+      - config-server
       - eureka-server
       - db-user
     environment:
@@ -101,7 +101,7 @@ services:
       - ./company-service/target/company-service-0.0.1-SNAPSHOT.jar:/app.jar
     command: java -jar /app.jar
     depends_on:
-      - config-service
+      - config-server
       - eureka-server
       - db-company
     environment:
@@ -123,7 +123,7 @@ services:
     command: java -jar /app.jar
     depends_on:
       - eureka-server
-      - config-service
+      - config-server
       - user-service
       - company-service
     environment:
