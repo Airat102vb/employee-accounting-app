@@ -1,13 +1,11 @@
 package pet.project;
 
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pet.project.dao.UserRepository;
 import pet.project.dto.UserDto;
 import pet.project.dto.UserWithCompanyDto;
-import java.util.List;
 
 @Service
 public class UserService {
