@@ -10,23 +10,23 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import pet.project.dao.CompanyRepository;
+import pet.project.CompanyService;
 import pet.project.dto.CompanyDto;
 import pet.project.dto.CompanyWithUsersDto;
 
 @RestController
 public class CompanyController {
 
-  private CompanyRepository companyRepository;
+  private CompanyService companyService;
 
   @Autowired
-  public CompanyController(CompanyRepository companyRepository) {
-    this.companyRepository = companyRepository;
+  public CompanyController(CompanyService companyService) {
+    this.companyService = companyService;
   }
 
   @PostMapping("/add")
   public ResponseEntity addCompany(@RequestBody CompanyDto newCompany) {
-    int result = companyRepository.insertCompany(newCompany);
+    int result = companyService.insertCompany(newCompany);
     return result == 0
         ? ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Не удалось добавить компанию")
         : ResponseEntity.status(HttpStatus.CREATED)
@@ -37,7 +37,7 @@ public class CompanyController {
   public ResponseEntity addEmployee(
       @QueryParam(value = "companyId") Integer companyId,
       @QueryParam(value = "employeeId") Integer employeeId) {
-    int result = companyRepository.insertEmployeeToCompany(companyId, employeeId);
+    int result = companyService.insertEmployeeToCompany(companyId, employeeId);
     return result == 0
         ? ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body("Не удалось добавить пользователя в компанию")
@@ -46,30 +46,30 @@ public class CompanyController {
 
   @GetMapping("/get")
   public ResponseEntity getCompany(@QueryParam(value = "companyId") String companyId) {
-    CompanyWithUsersDto company = companyRepository.getCompanyById(companyId);
+    CompanyWithUsersDto company = companyService.getCompanyById(companyId);
     return ResponseEntity.ok(company);
   }
 
   @GetMapping("/get-by-user")
   public ResponseEntity getCompanyByUser(@QueryParam(value = "employeeId") String employeeId) {
-    CompanyDto company = companyRepository.getCompanyByUserId(employeeId);
+    CompanyDto company = companyService.getCompanyByUserId(employeeId);
     return ResponseEntity.ok(company);
   }
 
   @PutMapping("/update")
   public ResponseEntity updateCompany(@RequestBody CompanyDto newCompanyData) {
-    companyRepository.update(newCompanyData);
+    companyService.update(newCompanyData);
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 
   @DeleteMapping("/delete")
   public ResponseEntity deleteCompany(@QueryParam(value = "companyId") String companyId) {
-    companyRepository.deleteCompany(companyId);
+    companyService.deleteCompany(companyId);
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 
   @GetMapping("/all")
   public ResponseEntity getAllCompanies() {
-    return ResponseEntity.status(HttpStatus.OK).body(companyRepository.getAllCompanies());
+    return ResponseEntity.status(HttpStatus.OK).body(companyService.getAllCompanies());
   }
 }
