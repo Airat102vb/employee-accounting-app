@@ -1,15 +1,41 @@
-Pet-project based on Spring Cloud technologies (<b>WIP</b>)
+### Pet-project based on Spring Cloud technologies
 
 ---
+<center><b>Description</b></center>
 
-<center><b>Architecture description</b></center>
+Project consists from gateway, eureka server (services registry), config cloud, two eureka client services 
+(user-service, company-service).
 
-There are two profiles for start: `local`; `docker`.
+`user-service` - stores and manipulates with users  
+`company-service` - stores and manipulates with companies  
+Cross-service requests implemented.
 
+There are two profiles for start: `local`; `docker`.  
 `API-GATEWAY` is up on port 8082
 
 ---
+<center><b>How to launch project</b></center>
 
+1. Clone the project
+2. Execute `mvn clean package -DskipTests=true` from root directory
+3. Execute `sudo docker compose up -d` from root directory
+4. Wait for a while (it takes some time for all services to start)
+5. You can test it:
+      ```bash
+      # Add user
+      curl --location 'http://localhost:8082/user-service/add' \
+      --header 'Content-Type: application/json' \
+      --data '{"firstName" : "Marsel", "lastName" : "Unknown", "phoneNumber" : "89171111112", "companyId" : 1}'
+   
+      # Create company and add user to the company
+      curl --location 'http://localhost:8082/company-service/add' \
+      --header 'Content-Type: application/json' \
+      --data '{"companyName" : "Sun Microsystems", "budget" : 12000000.00, "employeeId" : [1, 2]}'
+   
+      # Get all companies with users
+      curl --location 'http://localhost:8082/company-service/all'
+      ```
+---
 <center><b>Query examples</b></center>
 
 <b>User service:</b>
