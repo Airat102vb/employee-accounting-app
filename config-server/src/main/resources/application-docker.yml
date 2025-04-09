@@ -8,11 +8,11 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/Airat102vb/demo-spring-cloud-configs.git
+          uri: https://github.com/Airat102vb/employee-accounting-app.git
           clone-on-start: true
           default-label: main
           search-paths:
-            - '{application}-{profile}'
+            - 'config-server/src/main/resources/configs'
       discovery:
         enabled: true
 
