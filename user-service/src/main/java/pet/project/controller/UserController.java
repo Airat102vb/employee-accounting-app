@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import pet.project.UserService;
 import pet.project.dto.UserDto;
-import pet.project.dao.UserRepository;
 import pet.project.dto.UserWithCompanyDto;
 
 @RestController
@@ -36,13 +35,13 @@ public class UserController {
 
   @GetMapping("/get")
   public ResponseEntity getUser(@QueryParam(value = "userId") String userId) {
-    UserWithCompanyDto user = userService.getUserById(userId);
+    UserWithCompanyDto user = userService.getUser(userId);
     return ResponseEntity.ok(user);
   }
 
   @PutMapping("/update")
   public ResponseEntity updateUser(@RequestBody UserDto newUserData) {
-    return ResponseEntity.status(HttpStatus.OK).body(userService.update(newUserData));
+    return ResponseEntity.status(HttpStatus.OK).body(userService.updateUser(newUserData));
   }
 
   @DeleteMapping("/delete")

@@ -7,38 +7,26 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
-import pet.project.clients.UserServiceClient;
 import pet.project.dto.CompanyDto;
-import pet.project.dto.CompanyWithUsersDto;
-import pet.project.dto.UserDto;
+import pet.project.dto.CompanyInfoDto;
 
 @Repository
 public class CompanyRepository {
 
-  private final Logger logger = LoggerFactory.getLogger("UserRepository");
+  private final Logger logger = LoggerFactory.getLogger("CompanyRepository");
   private DataSource dataSource;
-  private UserServiceClient userServiceClient;
 
   @Autowired
-  public CompanyRepository(DataSource dataSource, UserServiceClient userServiceClient) {
+  public CompanyRepository(DataSource dataSource) {
     this.dataSource = dataSource;
-    this.userServiceClient = userServiceClient;
   }
 
-  public void someMethod() {
-    ResponseEntity<UserDto> response = userServiceClient.getUser("123");
-    UserDto user = response.getBody();
-  }
-
-  public CompanyWithUsersDto getCompanyById(String companyId) {
-    List<Integer> employeeIds = getEmployeesOfCompany(companyId);
+  public CompanyInfoDto getCompanyById(String companyId) {
     try (Connection connection = dataSource.getConnection()) {
       Statement statement = connection.createStatement();
       String sql = "SELECT * FROM companies WHERE id = %s".formatted(companyId);
@@ -46,30 +34,19 @@ public class CompanyRepository {
       ResultSet resultSet = statement.executeQuery(sql);
 
       if (resultSet.next()) {
-        var employees =
-            employeeIds.stream()
-                .map(
-                    id -> {
-                      ResponseEntity<UserDto> response =
-                          userServiceClient.getUser(String.valueOf(id));
-                      return response.getBody();
-                    })
-                .toList();
-
-        return new CompanyWithUsersDto(
+        return new CompanyInfoDto(
             resultSet.getInt("id"),
             resultSet.getString("company_name"),
-            resultSet.getBigDecimal("budget"),
-            employees);
+            resultSet.getBigDecimal("budget"));
       }
-      return new CompanyWithUsersDto(null, null, null, null);
+      return null;
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
   }
 
-  public CompanyDto getCompanyByUserId(String employeeId) {
-    Integer companyId = getCompanyOfEmployee(employeeId);
+  public CompanyDto getCompanyByOfUserById(String userId) {
+    Integer companyId = getCompanyOfEmployee(userId);
     try (Connection connection = dataSource.getConnection()) {
       Statement statement = connection.createStatement();
       String sql = "SELECT * FROM companies WHERE id = %s".formatted(companyId);
@@ -81,7 +58,7 @@ public class CompanyRepository {
             resultSet.getInt("id"),
             resultSet.getString("company_name"),
             resultSet.getBigDecimal("budget"),
-            List.of(Integer.parseInt(employeeId)));
+            List.of(Integer.parseInt(userId)));
       }
       return new CompanyDto(null, null, null, null);
     } catch (SQLException e) {
@@ -89,7 +66,7 @@ public class CompanyRepository {
     }
   }
 
-  private List<Integer> getEmployeesOfCompany(String companyId) {
+  public List<Integer> getEmployeeIdsOfCompany(String companyId) {
     List<Integer> ids = new LinkedList<>();
     try (Connection connection = dataSource.getConnection()) {
       Statement statement = connection.createStatement();
@@ -107,7 +84,6 @@ public class CompanyRepository {
   }
 
   private Integer getCompanyOfEmployee(String employeeId) {
-    List<Integer> ids = new LinkedList<>();
     try (Connection connection = dataSource.getConnection()) {
       Statement statement = connection.createStatement();
       String sql = "SELECT * FROM company_employees WHERE employee_id = %s".formatted(employeeId);
@@ -123,7 +99,7 @@ public class CompanyRepository {
     }
   }
 
-  public int insertCompany(CompanyDto company) {
+  public Integer insertCompany(CompanyDto company) {
     String sql = "INSERT INTO companies (company_name, budget) VALUES (?, ?)";
     try (PreparedStatement statement =
         dataSource.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -134,23 +110,13 @@ public class CompanyRepository {
       statement.executeUpdate();
       try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
         if (generatedKeys.next()) {
-          int companyId = generatedKeys.getInt(1);
-          if (Objects.nonNull(company.employeeId()) && company.employeeId().size() != 0) {
-            company.employeeId().stream()
-                .forEach(employeeId -> insertEmployeeToCompany(companyId, employeeId));
-          }
-          return companyId;
+          return generatedKeys.getInt(1);
         }
       }
     } catch (SQLException e) {
-      System.err.println("SQL Error State: " + e.getSQLState());
-      System.err.println("Error Code: " + e.getErrorCode());
-      System.err.println("Message: " + e.getMessage());
-      System.err.println("Stack Trace:");
-      e.printStackTrace();
       throw new RuntimeException("Не удалось добавить компанию", e);
     }
-    return 0;
+    return null;
   }
 
   public int insertEmployeeToCompany(int companyId, int employeeId) {
@@ -162,16 +128,11 @@ public class CompanyRepository {
       return statement.executeUpdate();
 
     } catch (SQLException e) {
-      System.err.println("SQL Error State: " + e.getSQLState());
-      System.err.println("Error Code: " + e.getErrorCode());
-      System.err.println("Message: " + e.getMessage());
-      System.err.println("Stack Trace:");
-      e.printStackTrace();
       throw new RuntimeException("Не удалось добавить пользователя в компанию", e);
     }
   }
 
-  public void update(CompanyDto newCompanyData) {
+  public void updateCompany(CompanyDto newCompanyData) {
     String sql = "UPDATE companies SET company_name = ?, budget = ? WHERE id = ?";
     try (Connection connection = dataSource.getConnection();
         PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -193,23 +154,18 @@ public class CompanyRepository {
         throw new RuntimeException("Company with id " + newCompanyData.id() + " not found");
       }
     } catch (SQLException e) {
-      logger.error("Failed to update company: {}", e.getMessage());
       throw new RuntimeException("Failed to update company", e);
-    }
-
-    if (Objects.nonNull(newCompanyData.employeeId()) && newCompanyData.employeeId().size() != 0) {
-      updateEmployees(newCompanyData);
     }
   }
 
-  private boolean updateEmployees(CompanyDto newCompanyData) {
-    deleteEmployees(newCompanyData.id());
-    newCompanyData.employeeId().stream()
+  public boolean updateEmployees(CompanyDto newCompanyData) {
+    newCompanyData
+        .employeeId()
         .forEach(employeeId -> insertEmployeeToCompany(newCompanyData.id(), employeeId));
     return true;
   }
 
-  private void deleteEmployees(Integer companyId) {
+  public boolean deleteEmployees(Integer companyId) {
     String sqlDelete = "DELETE FROM company_employees WHERE company_id = ?";
     try (Connection connection = dataSource.getConnection();
         PreparedStatement statement = connection.prepareStatement(sqlDelete)) {
@@ -218,10 +174,8 @@ public class CompanyRepository {
       logger.info("Выполняется запрос: {} с параметром companyId = {}", sqlDelete, companyId);
       int affectedRows = statement.executeUpdate();
 
-      if (affectedRows == 0) {
-        logger.warn("В компании с id {} не было сотрудников", companyId);
-      }
-      logger.info("Сотрудники из компании {} успешно удалены", companyId);
+      return affectedRows != 0;
+
     } catch (SQLException e) {
       logger.error(
           "Ошибка при удалении сотрудников из компании с id {}: {}", companyId, e.getMessage());
@@ -229,9 +183,7 @@ public class CompanyRepository {
     }
   }
 
-  public boolean deleteCompany(String companyId) {
-    deleteEmployees(Integer.parseInt(companyId));
-
+  public boolean deleteCompanyById(String companyId) {
     String sql = "DELETE FROM companies WHERE id = ?";
     try (Connection connection = dataSource.getConnection();
         PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -239,20 +191,15 @@ public class CompanyRepository {
       logger.info("Выполняется запрос: {} с параметром companyId = {}", sql, companyId);
 
       int affectedRows = statement.executeUpdate();
-      if (affectedRows == 0) {
-        logger.warn("Компания с id {} не найдена", companyId);
-        return false;
-      }
-      logger.info("Компания с id {} успешно удалена", companyId);
-      return true;
+      return affectedRows != 0;
     } catch (SQLException e) {
       logger.error("Ошибка при удалении компании с id {}: {}", companyId, e.getMessage());
       throw new RuntimeException("Не удалось удалить компанию", e);
     }
   }
 
-  public List<CompanyWithUsersDto> getAllCompanies() {
-    List<CompanyWithUsersDto> companies = new LinkedList<>();
+  public List<CompanyInfoDto> getAllCompanies() {
+    List<CompanyInfoDto> companies = new LinkedList<>();
     try (Connection connection = dataSource.getConnection()) {
       Statement statement = connection.createStatement();
       String sql = "SELECT * FROM companies;";
@@ -260,24 +207,11 @@ public class CompanyRepository {
       ResultSet resultSet = statement.executeQuery(sql);
 
       while (resultSet.next()) {
-        int companyId = resultSet.getInt("id");
-        List<Integer> employeeIds = getEmployeesOfCompany(String.valueOf(companyId));
-        var employees =
-            employeeIds.stream()
-                .map(
-                    id -> {
-                      ResponseEntity<UserDto> response =
-                          userServiceClient.getUser(String.valueOf(id));
-                      return response.getBody();
-                    })
-                .toList();
-
         companies.add(
-            new CompanyWithUsersDto(
-                companyId,
+            new CompanyInfoDto(
+                resultSet.getInt("id"),
                 resultSet.getString("company_name"),
-                resultSet.getBigDecimal("budget"),
-                employees));
+                resultSet.getBigDecimal("budget")));
       }
       return companies;
     } catch (SQLException e) {

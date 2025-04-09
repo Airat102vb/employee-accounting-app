@@ -1,6 +1,7 @@
 package pet.project.controller;
 
 import jakarta.ws.rs.QueryParam;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,11 +27,11 @@ public class CompanyController {
 
   @PostMapping("/add")
   public ResponseEntity addCompany(@RequestBody CompanyDto newCompany) {
-    int result = companyService.insertCompany(newCompany);
-    return result == 0
-        ? ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Не удалось добавить компанию")
-        : ResponseEntity.status(HttpStatus.CREATED)
-            .body("Создана компания с id = %s".formatted(result));
+    Integer newCompanyId = companyService.insertCompany(newCompany);
+    return Objects.nonNull(newCompanyId)
+        ? ResponseEntity.status(HttpStatus.CREATED)
+            .body("Создана компания с id = %s".formatted(newCompanyId))
+        : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Не удалось добавить компанию");
   }
 
   @PostMapping("/add-employee")
@@ -45,8 +46,9 @@ public class CompanyController {
   }
 
   @GetMapping("/get")
-  public ResponseEntity getCompany(@QueryParam(value = "companyId") String companyId) {
-    CompanyWithUsersDto company = companyService.getCompanyById(companyId);
+  public ResponseEntity<CompanyWithUsersDto> getCompany(
+      @QueryParam(value = "companyId") String companyId) {
+    CompanyWithUsersDto company = companyService.getCompany(companyId);
     return ResponseEntity.ok(company);
   }
 
@@ -58,7 +60,7 @@ public class CompanyController {
 
   @PutMapping("/update")
   public ResponseEntity updateCompany(@RequestBody CompanyDto newCompanyData) {
-    companyService.update(newCompanyData);
+    companyService.updateCompany(newCompanyData);
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 
