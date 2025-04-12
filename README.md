@@ -3,8 +3,9 @@
 ---
 <center><b>Description</b></center>
 
-Project consists from gateway, eureka server (services registry), config cloud, two eureka client services 
-(user-service, company-service).
+<b>Project consists from:</b>  
+- <b>Spring tech:</b> gateway, eureka server, config cloud, two eureka clients (user-service, company-service);  
+- <b>Other tech:</b> PostgreSQL, Hibernate, Docker compose.
 
 `user-service` - stores and manipulates with users  
 `company-service` - stores and manipulates with companies  
@@ -23,71 +24,69 @@ There are two profiles for start: `local`; `docker`.
 5. You can test it:
       ```bash
       # Add user
-      curl --location 'http://localhost:8082/user-service/add' \
+      curl --location 'http://localhost:8082/user-service/user' \
       --header 'Content-Type: application/json' \
-      --data '{"firstName" : "Marsel", "lastName" : "Unknown", "phoneNumber" : "89171111112", "companyId" : 1}'
+      --data '{"firstName" : "Fedor", "lastName" : "Dostoevsky", "phoneNumber" : "89171111117", "companyId" : 1}'
    
       # Create company and add user to the company
-      curl --location 'http://localhost:8082/company-service/add' \
+      curl --location 'http://localhost:8082/company-service/company' \
       --header 'Content-Type: application/json' \
-      --data '{"companyName" : "Sun Microsystems", "budget" : 12000000.00, "employeeId" : [1, 2]}'
+      --data '{"companyName" : "Cisco", "budget" : 17000000.50, "employeeId" : [1]}'
    
       # Get all companies with users
-      curl --location 'http://localhost:8082/company-service/all'
+      curl --location 'http://localhost:8082/company-service/company'
       ```
 ---
-<center><b>Query examples</b></center>
-
-<b>User service:</b>
+<b>Query examples: user-service</b>  
 
 1) POST - New user creation  
    ```bash
-   curl --location 'http://localhost:8082/user-service/add' \
+   curl --location 'http://localhost:8082/user-service/user' \
    --header 'Content-Type: application/json' \
-   --data '{"firstName" : "Sun", "lastName" : "Moon", "phoneNumber" : "89171234567", "companyId" : 1}
+   --data '{"firstName" : "Fedor", "lastName" : "Dostoevsky", "phoneNumber" : "89171111117", "companyId" : 1}'
    ```
    
 2) GET - get user by id
    ```bash
-   curl --location 'http://localhost:8082/user-service/get?userId=8'
+   curl --location 'http://localhost:8082/user-service/user/1?withCompanyInfo=true'
    ```
    
 3) PUT - update user
    ```bash
-   curl --location --request PUT 'http://localhost:8082/user-service/update' \
+   curl --location --request PUT 'http://localhost:8082/user-service/user/3' \
    --header 'Content-Type: application/json' \
-   --data '{"id" : 1, "firstName" : "Sun", "lastName" : "Moon", "phoneNumber" : "89171234510", "companyId" : 5}'
+   --data '{"firstName" : "Fedor", "lastName" : "Dostoevsky", "phoneNumber" : "89171111121", "companyId" : 1}'
    ```
    
 4) DELETE - delete user
    ```bash
-   curl --location --request DELETE 'http://localhost:8082/user-service/delete?userId=2'
+   curl --location --request DELETE 'http://localhost:8082/user-service/user/1'
    ```
    
 5) GET - get all users
    ```bash
-   curl --location 'http://localhost:8082/user-service/all'
+   curl --location 'http://localhost:8082/user-service/user'
    ```
 
-<b>Company service:</b>
+<b>Query examples: company-service</b>  
 
 1) POST - New company creation
    ```bash
-   curl --location 'http://localhost:8082/company-service/add' \
+   curl --location 'http://localhost:8082/company-service/company' \
    --header 'Content-Type: application/json' \
-   --data '{"companyName" : "Sun Microsystems", "budget" : 12000000.00, "employeeId" : [1, 2, 3]}'
+   --data '{"companyName" : "Cisco", "budget" : 17000000.50, "employeeId" : [1]}'
    ```
 
 2) GET - get company by id
    ```bash
-   curl --location 'http://localhost:8082/company-service/get?companyId=3'
+   curl --location 'http://localhost:8082/company-service/company/1?withUserInfo=true'
    ```
 
 3) PUT - update company
    ```bash
-   curl --location --request GET 'http://localhost:8082/company-service/get?companyId=3' \
+   curl --location --request PUT 'http://localhost:8082/company-service/company/1' \
    --header 'Content-Type: application/json' \
-   --data '{"id" : 1, "companyName" : "Sun Microsystems", "budget" : 12000000.00, "phoneNumber" : "89171234567", "employeeId" : [1, 2, 3]}'
+   --data '{"companyName" : "Cisco", "budget" : 17000000.50, "employeeId" : [1, 2]}'
    ```
 
 4) DELETE - delete company
@@ -97,5 +96,5 @@ There are two profiles for start: `local`; `docker`.
 
 5) GET - get all companies
    ```bash
-   curl --location 'http://localhost:8082/company-service/all'
+   curl --location --request DELETE 'http://localhost:8082/company-service/company/1'
    ```
