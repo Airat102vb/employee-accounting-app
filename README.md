@@ -91,10 +91,10 @@ There are two profiles for start: `local`; `docker`.
 
 4) DELETE - delete company
    ```bash
-   curl --location --request DELETE 'http://localhost:8082/company-service/delete?companyId=3'
+   curl --location --request DELETE 'http://localhost:8082/company-service/company/2'
    ```
 
 5) GET - get all companies
    ```bash
-   curl --location --request DELETE 'http://localhost:8082/company-service/company/1'
+   curl --location 'http://localhost:8082/company-service/company'
    ```

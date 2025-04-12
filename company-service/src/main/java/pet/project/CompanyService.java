@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pet.project.clients.UserServiceClient;
-import pet.project.dao.CompanyRepository;
 import pet.project.dao.CompanyRepositoryHibernate;
 import pet.project.dto.CompanyDto;
 import pet.project.dto.CompanyWithUsersDto;
@@ -21,16 +20,12 @@ import pet.project.entity.Company;
 public class CompanyService {
 
   private final Logger logger = LoggerFactory.getLogger("CompanyService");
-  private CompanyRepository companyRepository;
   private UserServiceClient userServiceClient;
   private CompanyRepositoryHibernate companyRepositoryHibernate;
 
   @Autowired
   public CompanyService(
-      CompanyRepository companyRepository,
-      CompanyRepositoryHibernate companyRepositoryHibernate,
-      UserServiceClient userServiceClient) {
-    this.companyRepository = companyRepository;
+      CompanyRepositoryHibernate companyRepositoryHibernate, UserServiceClient userServiceClient) {
     this.companyRepositoryHibernate = companyRepositoryHibernate;
     this.userServiceClient = userServiceClient;
   }
@@ -53,7 +48,10 @@ public class CompanyService {
       List<UserDto> employees =
           company.getEmployeeIds().stream()
               .map(id -> userServiceClient.getUser(id, true).getBody())
-              .map(dto -> new UserDto(dto.id(), dto.firstName(), dto.firstName(), dto.phoneNumber(), companyId))
+              .map(
+                  dto ->
+                      new UserDto(
+                          dto.id(), dto.firstName(), dto.firstName(), dto.phoneNumber(), companyId))
               .toList();
 
       return new CompanyWithUsersDto(

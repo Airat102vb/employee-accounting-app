@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pet.project.clients.CompanyServiceClient;
-import pet.project.dao.UserRepository;
 import pet.project.dao.UserRepositoryHibernate;
 import pet.project.dto.CompanyWithUsersDto;
 import pet.project.dto.UserDto;
@@ -23,16 +22,12 @@ import pet.project.entity.User;
 public class UserService {
 
   private final Logger logger = LoggerFactory.getLogger("UserService");
-  private UserRepository userRepository;
   private CompanyServiceClient companyServiceClient;
   private UserRepositoryHibernate userRepositoryHibernate;
 
   @Autowired
   public UserService(
-      UserRepository userRepository,
-      UserRepositoryHibernate userRepositoryHibernate,
-      CompanyServiceClient companyServiceClient) {
-    this.userRepository = userRepository;
+      UserRepositoryHibernate userRepositoryHibernate, CompanyServiceClient companyServiceClient) {
     this.companyServiceClient = companyServiceClient;
     this.userRepositoryHibernate = userRepositoryHibernate;
   }
@@ -45,7 +40,8 @@ public class UserService {
   public UserWithCompanyDto getUser(Integer userId, boolean withCompanyInfo) {
     User user = userRepositoryHibernate.findById(userId).orElseThrow();
     if (withCompanyInfo && Objects.nonNull(user.getCompanyId())) {
-      CompanyWithUsersDto company = companyServiceClient.getCompany(user.getCompanyId(), false).getBody();
+      CompanyWithUsersDto company =
+          companyServiceClient.getCompany(user.getCompanyId(), false).getBody();
       return mapToUserWithCompanyDto(user, company.companyName());
     }
     return mapToUserWithCompanyDto(user);
