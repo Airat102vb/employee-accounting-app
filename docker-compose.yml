@@ -11,8 +11,6 @@ services:
       POSTGRES_PASSWORD: postgres
     networks:
       - spring-cloud-network
-    volumes:
-      - ./user-service/src/main/resources/db:/docker-entrypoint-initdb.d
 
   db-company:
     container_name: company-demo-db
@@ -25,8 +23,6 @@ services:
       POSTGRES_PASSWORD: postgres
     networks:
       - spring-cloud-network
-    volumes:
-      - ./company-service/src/main/resources/db:/docker-entrypoint-initdb.d
 
   eureka-server:
     container_name: eureka-server

@@ -13,8 +13,6 @@ spring:
           default-label: main
           search-paths:
             - 'config-server/src/main/resources/configs'
-      discovery:
-        enabled: true
 
 logging:
   level:

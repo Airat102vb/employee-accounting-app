@@ -1,20 +1,23 @@
 package pet.project.controller;
 
-import jakarta.ws.rs.QueryParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pet.project.UserService;
 import pet.project.dto.UserDto;
 import pet.project.dto.UserWithCompanyDto;
 
 @RestController
+@RequestMapping("/user")
 public class UserController {
 
   private UserService userService;
@@ -24,33 +27,36 @@ public class UserController {
     this.userService = userService;
   }
 
-  @PostMapping("/add")
+  @PostMapping
   public ResponseEntity addUser(@RequestBody UserDto newUser) {
-    Long result = userService.addUser(newUser);
+    Integer result = userService.addUser(newUser);
     return result == 0
         ? ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Не удалось добавить пользователя")
         : ResponseEntity.status(HttpStatus.CREATED)
             .body("Создан пользователь с id = %s".formatted(result));
   }
 
-  @GetMapping("/get")
-  public ResponseEntity getUser(@QueryParam(value = "userId") String userId) {
-    UserWithCompanyDto user = userService.getUser(userId);
+  @GetMapping("{id}")
+  public ResponseEntity<UserWithCompanyDto> getUser(
+      @PathVariable(value = "id") Integer userId,
+      @RequestParam(value = "withCompanyInfo", defaultValue = "false") boolean withCompanyInfo) {
+    UserWithCompanyDto user = userService.getUser(userId, withCompanyInfo);
     return ResponseEntity.ok(user);
   }
 
-  @PutMapping("/update")
-  public ResponseEntity updateUser(@RequestBody UserDto newUserData) {
-    return ResponseEntity.status(HttpStatus.OK).body(userService.updateUser(newUserData));
+  @PutMapping("{id}")
+  public ResponseEntity updateUser(
+      @PathVariable(value = "id") Integer userId, @RequestBody UserDto newUserData) {
+    return ResponseEntity.status(HttpStatus.OK).body(userService.update(userId, newUserData));
   }
 
-  @DeleteMapping("/delete")
-  public ResponseEntity deleteUser(@QueryParam(value = "userId") String userId) {
+  @DeleteMapping("{id}")
+  public ResponseEntity deleteUser(@PathVariable(value = "id") Integer userId) {
     userService.deleteUser(userId);
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 
-  @GetMapping("/all")
+  @GetMapping
   public ResponseEntity getAllUsers() {
     return ResponseEntity.status(HttpStatus.OK).body(userService.getAllUsers());
   }

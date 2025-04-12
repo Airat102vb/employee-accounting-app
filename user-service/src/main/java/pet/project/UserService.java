@@ -1,5 +1,9 @@
 package pet.project;
 
+import static pet.project.mapper.UserMapper.mapToUser;
+import static pet.project.mapper.UserMapper.mapToUserDto;
+import static pet.project.mapper.UserMapper.mapToUserWithCompanyDto;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -9,9 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pet.project.clients.CompanyServiceClient;
 import pet.project.dao.UserRepository;
-import pet.project.dto.CompanyDto;
+import pet.project.dao.UserRepositoryHibernate;
+import pet.project.dto.CompanyWithUsersDto;
 import pet.project.dto.UserDto;
 import pet.project.dto.UserWithCompanyDto;
+import pet.project.entity.User;
 
 @Service
 public class UserService {
@@ -19,57 +25,63 @@ public class UserService {
   private final Logger logger = LoggerFactory.getLogger("UserService");
   private UserRepository userRepository;
   private CompanyServiceClient companyServiceClient;
+  private UserRepositoryHibernate userRepositoryHibernate;
 
   @Autowired
-  public UserService(UserRepository userRepository, CompanyServiceClient companyServiceClient) {
+  public UserService(
+      UserRepository userRepository,
+      UserRepositoryHibernate userRepositoryHibernate,
+      CompanyServiceClient companyServiceClient) {
     this.userRepository = userRepository;
     this.companyServiceClient = companyServiceClient;
+    this.userRepositoryHibernate = userRepositoryHibernate;
   }
 
-  public Long addUser(UserDto newUser) {
-    return userRepository.addUser(newUser);
+  public Integer addUser(UserDto newUser) {
+    User newCratedUser = userRepositoryHibernate.save(mapToUser(newUser));
+    return mapToUserDto(newCratedUser).id();
   }
 
-  public UserWithCompanyDto getUser(String userId) {
-    UserDto user = userRepository.getUserById(userId);
-    if (Objects.nonNull(user.companyId())) {
-      CompanyDto company = companyServiceClient.getCompanyByUser(userId).getBody();
-      return new UserWithCompanyDto(
-          user.id(), user.firstName(), user.lastName(), user.phoneNumber(), company.companyName());
+  public UserWithCompanyDto getUser(Integer userId, boolean withCompanyInfo) {
+    User user = userRepositoryHibernate.findById(userId).orElseThrow();
+    if (withCompanyInfo && Objects.nonNull(user.getCompanyId())) {
+      CompanyWithUsersDto company = companyServiceClient.getCompany(user.getCompanyId(), false).getBody();
+      return mapToUserWithCompanyDto(user, company.companyName());
     }
-    return new UserWithCompanyDto(
-        user.id(), user.firstName(), user.lastName(), user.phoneNumber(), null);
+    return mapToUserWithCompanyDto(user);
   }
 
-  public UserDto updateUser(UserDto newUserData) {
-    return userRepository.updateUserById(newUserData);
+  public UserDto update(Integer userId, UserDto newUserData) {
+    User user = userRepositoryHibernate.findById(userId).orElseThrow();
+
+    user.setFirstName(newUserData.firstName());
+    user.setLastName(newUserData.lastName());
+    user.setPhoneNumber(newUserData.phoneNumber());
+    user.setCompanyId(newUserData.companyId());
+
+    User updatedUserDto = userRepositoryHibernate.save(user);
+    return mapToUserDto(updatedUserDto);
   }
 
-  public void deleteUser(String userId) {
-    if (userRepository.deleteUserById(userId)) {
-      logger.info("Пользователь с id {} успешно удален", userId);
-    } else {
-      logger.warn("Пользователь с id {} не найден", userId);
-    }
+  public void deleteUser(Integer userId) {
+    userRepositoryHibernate.deleteById(userId);
   }
 
   public List<UserWithCompanyDto> getAllUsers() {
-    List<UserWithCompanyDto> usersWithCompany = new LinkedList<>();
-    List<UserDto> users = userRepository.getAllUsers();
+    List<UserWithCompanyDto> resultDto = new LinkedList<>();
+    List<User> users = userRepositoryHibernate.findAll();
 
-    users.forEach(
-        user -> {
-          CompanyDto company =
-              companyServiceClient.getCompanyByUser(user.companyId().toString()).getBody();
-          usersWithCompany.add(
-              new UserWithCompanyDto(
-                  user.id(),
-                  user.firstName(),
-                  user.lastName(),
-                  user.phoneNumber(),
-                  company.companyName()));
-        });
-
-    return usersWithCompany;
+    for (User user : users) {
+      CompanyWithUsersDto companyDto =
+          companyServiceClient.getCompany(user.getCompanyId(), false).getBody();
+      resultDto.add(
+          new UserWithCompanyDto(
+              user.getId(),
+              user.getFirstName(),
+              user.getLastName(),
+              user.getPhoneNumber(),
+              companyDto.companyName()));
+    }
+    return resultDto;
   }
 }

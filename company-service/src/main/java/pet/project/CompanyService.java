@@ -1,19 +1,21 @@
 package pet.project;
 
+import static pet.project.mapper.CompanyMapper.mapToCompany;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pet.project.clients.UserServiceClient;
 import pet.project.dao.CompanyRepository;
+import pet.project.dao.CompanyRepositoryHibernate;
 import pet.project.dto.CompanyDto;
-import pet.project.dto.CompanyInfoDto;
 import pet.project.dto.CompanyWithUsersDto;
 import pet.project.dto.UserDto;
+import pet.project.entity.Company;
 
 @Service
 public class CompanyService {
@@ -21,98 +23,84 @@ public class CompanyService {
   private final Logger logger = LoggerFactory.getLogger("CompanyService");
   private CompanyRepository companyRepository;
   private UserServiceClient userServiceClient;
+  private CompanyRepositoryHibernate companyRepositoryHibernate;
 
   @Autowired
-  public CompanyService(CompanyRepository companyRepository, UserServiceClient userServiceClient) {
+  public CompanyService(
+      CompanyRepository companyRepository,
+      CompanyRepositoryHibernate companyRepositoryHibernate,
+      UserServiceClient userServiceClient) {
     this.companyRepository = companyRepository;
+    this.companyRepositoryHibernate = companyRepositoryHibernate;
     this.userServiceClient = userServiceClient;
   }
 
-  public Integer insertCompany(CompanyDto newCompany) {
-    Integer companyId = companyRepository.insertCompany(newCompany);
-    if (Objects.nonNull(companyId)) {
-      if (Objects.nonNull(newCompany.employeeId()) && !newCompany.employeeId().isEmpty()) {
-        newCompany
-            .employeeId()
-            .forEach(employeeId -> insertEmployeeToCompany(companyId, employeeId));
-      }
-    }
-    return companyId;
+  public Integer addCompany(CompanyDto newCompany) {
+    Company newCreatedCompany = companyRepositoryHibernate.save(mapToCompany(newCompany));
+    return newCreatedCompany.getId();
   }
 
-  public Integer insertEmployeeToCompany(Integer companyId, Integer employeeId) {
-    return companyRepository.insertEmployeeToCompany(companyId, employeeId);
+  public void insertEmployeeToCompany(Integer companyId, Integer employeeId) {
+    Company company = companyRepositoryHibernate.findById(companyId).orElseThrow();
+    company.getEmployeeIds().add(employeeId);
+    companyRepositoryHibernate.save(company);
   }
 
-  public CompanyWithUsersDto getCompany(String companyId) {
-    CompanyInfoDto companyDto = companyRepository.getCompanyById(companyId);
-    if (companyDto == null) {
-      return new CompanyWithUsersDto(null, null, null, null);
+  public CompanyWithUsersDto getCompany(Integer companyId, boolean withUserInfo) {
+    Company company = companyRepositoryHibernate.findById(companyId).orElseThrow();
+
+    if (withUserInfo) {
+      List<UserDto> employees =
+          company.getEmployeeIds().stream()
+              .map(id -> userServiceClient.getUser(id, true).getBody())
+              .map(dto -> new UserDto(dto.id(), dto.firstName(), dto.firstName(), dto.phoneNumber(), companyId))
+              .toList();
+
+      return new CompanyWithUsersDto(
+          company.getId(), company.getCompanyName(), company.getBudget(), employees);
     }
-
-    List<Integer> employeeIds =
-        companyRepository.getEmployeeIdsOfCompany(companyDto.id().toString());
-
-    List<UserDto> employees =
-        employeeIds.stream()
-            .map(
-                id -> {
-                  ResponseEntity<UserDto> response = userServiceClient.getUser(String.valueOf(id));
-                  return response.getBody();
-                })
-            .toList();
 
     return new CompanyWithUsersDto(
-        companyDto.id(), companyDto.companyName(), companyDto.budget(), employees);
+        company.getId(), company.getCompanyName(), company.getBudget(), null);
   }
 
-  public CompanyDto getCompanyByUserId(String employeeId) {
-    return companyRepository.getCompanyByOfUserById(employeeId);
+  public void updateCompany(Integer companyId, CompanyDto newCompanyData) {
+    Company company = companyRepositoryHibernate.findById(companyId).orElseThrow();
+
+    company.setCompanyName(newCompanyData.companyName());
+    company.setBudget(newCompanyData.budget());
+    company.setEmployeeIds(newCompanyData.employeeId());
+
+    companyRepositoryHibernate.save(company);
   }
 
-  public void updateCompany(CompanyDto newCompanyData) {
-    companyRepository.updateCompany(newCompanyData);
-    if (Objects.nonNull(newCompanyData.employeeId()) && !newCompanyData.employeeId().isEmpty()) {
-      companyRepository.deleteEmployees(newCompanyData.id());
-      companyRepository.updateEmployees(newCompanyData);
-    }
-  }
-
-  public void deleteCompany(String companyId) {
-    if (companyRepository.deleteEmployees(Integer.parseInt(companyId))) {
-      logger.info("Сотрудники из компании {} успешно удалены", companyId);
-    } else {
-      logger.warn("В компании с id {} не было сотрудников", companyId);
-    }
-
-    if (companyRepository.deleteCompanyById(companyId)) {
-      logger.info("Компания с id {} успешно удалена", companyId);
-    } else {
-      logger.warn("Компания с id {} не найдена", companyId);
-    }
+  public void deleteCompany(Integer companyId) {
+    companyRepositoryHibernate.deleteById(companyId);
   }
 
   public List<CompanyWithUsersDto> getAllCompanies() {
-    List<CompanyWithUsersDto> companies = new LinkedList<>();
-    List<CompanyInfoDto> companiesInfo = companyRepository.getAllCompanies();
+    List<CompanyWithUsersDto> resultDto = new LinkedList<>();
+    List<Company> companies = companyRepositoryHibernate.findAll();
 
-    companiesInfo.forEach(
-        companyInfo -> {
-          List<Integer> employeeIds =
-              companyRepository.getEmployeeIdsOfCompany(companyInfo.id().toString());
-          List<UserDto> employees =
-              employeeIds.stream()
-                  .map(
-                      id -> {
-                        ResponseEntity<UserDto> response =
-                            userServiceClient.getUser(String.valueOf(id));
-                        return response.getBody();
-                      })
-                  .toList();
-          companies.add(
-              new CompanyWithUsersDto(
-                  companyInfo.id(), companyInfo.companyName(), companyInfo.budget(), employees));
-        });
-    return companies;
+    for (Company company : companies) {
+      if (Objects.nonNull(company.getEmployeeIds()) && !company.getEmployeeIds().isEmpty()) {
+        List<UserDto> user =
+            company.getEmployeeIds().stream()
+                .map(empId -> userServiceClient.getUser(empId, false).getBody())
+                .map(
+                    dto ->
+                        new UserDto(
+                            dto.id(),
+                            dto.firstName(),
+                            dto.lastName(),
+                            dto.phoneNumber(),
+                            company.getId()))
+                .toList();
+        resultDto.add(
+            new CompanyWithUsersDto(
+                company.getId(), company.getCompanyName(), company.getBudget(), user));
+      }
+    }
+    return resultDto;
   }
 }
