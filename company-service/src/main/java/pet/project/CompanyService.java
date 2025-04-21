@@ -30,9 +30,8 @@ public class CompanyService {
     this.userServiceClient = userServiceClient;
   }
 
-  public Integer addCompany(CompanyDto newCompany) {
-    Company newCreatedCompany = companyRepositoryHibernate.save(mapToCompany(newCompany));
-    return newCreatedCompany.getId();
+  public Company addCompany(CompanyDto newCompany) {
+    return companyRepositoryHibernate.save(mapToCompany(newCompany));
   }
 
   public void insertEmployeeToCompany(Integer companyId, Integer employeeId) {

@@ -1,7 +1,7 @@
 package pet.project.controller;
 
 import jakarta.ws.rs.QueryParam;
-import java.util.Objects;
+import java.net.URI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,9 +14,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pet.project.CompanyService;
 import pet.project.dto.CompanyDto;
 import pet.project.dto.CompanyWithUsersDto;
+import pet.project.entity.Company;
 
 @RestController
 @RequestMapping("/company")
@@ -31,11 +33,13 @@ public class CompanyController {
 
   @PostMapping
   public ResponseEntity addCompany(@RequestBody CompanyDto newCompany) {
-    Integer newCompanyId = companyService.addCompany(newCompany);
-    return Objects.nonNull(newCompanyId)
-        ? ResponseEntity.status(HttpStatus.CREATED)
-            .body("Создана компания с id = %s".formatted(newCompanyId))
-        : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Не удалось добавить компанию");
+    Company company = companyService.addCompany(newCompany);
+    URI uri = ServletUriComponentsBuilder
+        .fromCurrentRequest()
+        .path("/{id}")
+        .buildAndExpand(company.getId())
+        .toUri();
+    return ResponseEntity.created(uri).body(company);
   }
 
   @PostMapping("/user/{id}")
