@@ -1,6 +1,7 @@
 package pet.project.service;
 
 import static pet.project.mapper.CompanyMapper.mapToCompany;
+import static pet.project.mapper.CompanyMapper.mapToUserWithCompanyDto;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -56,22 +57,17 @@ public class CompanyServiceImpl implements CompanyService {
                           dto.id(), dto.firstName(), dto.firstName(), dto.phoneNumber(), companyId))
               .toList();
 
-      return new CompanyWithUsersDto(
-          company.getId(), company.getCompanyName(), company.getBudget(), employees);
+      return mapToUserWithCompanyDto(company, employees);
     }
 
-    return new CompanyWithUsersDto(
-        company.getId(), company.getCompanyName(), company.getBudget(), null);
+    return mapToUserWithCompanyDto(company, null);
   }
 
   @Override
   public void updateCompany(Integer companyId, CompanyDto newCompanyData) {
     Company company = companyRepositoryHibernate.findById(companyId).orElseThrow();
-
-    company.setCompanyName(newCompanyData.companyName());
-    company.setBudget(newCompanyData.budget());
-    company.setEmployeeIds(newCompanyData.employeeId());
-
+    Company companyData = mapToCompany(newCompanyData);
+    companyData.setId(company.getId());
     companyRepositoryHibernate.save(company);
   }
 
@@ -99,9 +95,7 @@ public class CompanyServiceImpl implements CompanyService {
                             dto.phoneNumber(),
                             company.getId()))
                 .toList();
-        resultDto.add(
-            new CompanyWithUsersDto(
-                company.getId(), company.getCompanyName(), company.getBudget(), user));
+        resultDto.add(mapToUserWithCompanyDto(company, user));
       }
     }
     return resultDto;

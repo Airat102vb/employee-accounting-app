@@ -4,6 +4,7 @@ import static pet.project.mapper.UserMapper.mapToUser;
 import static pet.project.mapper.UserMapper.mapToUserDto;
 import static pet.project.mapper.UserMapper.mapToUserWithCompanyDto;
 
+import jakarta.ws.rs.NotFoundException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -51,14 +52,10 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public UserDto update(Integer userId, UserDto newUserData) {
-    User user = userRepositoryHibernate.findById(userId).orElseThrow();
-
-    user.setFirstName(newUserData.firstName());
-    user.setLastName(newUserData.lastName());
-    user.setPhoneNumber(newUserData.phoneNumber());
-    user.setCompanyId(newUserData.companyId());
-
-    User updatedUserDto = userRepositoryHibernate.save(user);
+    User user = userRepositoryHibernate.findById(userId).orElseThrow(NotFoundException::new);
+    User userData = mapToUser(newUserData);
+    userData.setId(user.getId());
+    User updatedUserDto = userRepositoryHibernate.save(userData);
     return mapToUserDto(updatedUserDto);
   }
 
@@ -75,13 +72,7 @@ public class UserServiceImpl implements UserService {
     for (User user : users) {
       CompanyWithUsersDto companyDto =
           companyServiceClient.getCompany(user.getCompanyId(), false).getBody();
-      resultDto.add(
-          new UserWithCompanyDto(
-              user.getId(),
-              user.getFirstName(),
-              user.getLastName(),
-              user.getPhoneNumber(),
-              companyDto.companyName()));
+      resultDto.add(mapToUserWithCompanyDto(user, companyDto.companyName()));
     }
     return resultDto;
   }
