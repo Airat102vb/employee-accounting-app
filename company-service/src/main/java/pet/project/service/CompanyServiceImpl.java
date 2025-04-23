@@ -1,4 +1,4 @@
-package pet.project;
+package pet.project.service;
 
 import static pet.project.mapper.CompanyMapper.mapToCompany;
 
@@ -17,29 +17,32 @@ import pet.project.dto.UserDto;
 import pet.project.entity.Company;
 
 @Service
-public class CompanyService {
+public class CompanyServiceImpl implements CompanyService {
 
   private final Logger logger = LoggerFactory.getLogger("CompanyService");
   private UserServiceClient userServiceClient;
   private CompanyRepositoryHibernate companyRepositoryHibernate;
 
   @Autowired
-  public CompanyService(
+  public CompanyServiceImpl(
       CompanyRepositoryHibernate companyRepositoryHibernate, UserServiceClient userServiceClient) {
     this.companyRepositoryHibernate = companyRepositoryHibernate;
     this.userServiceClient = userServiceClient;
   }
 
+  @Override
   public Company addCompany(CompanyDto newCompany) {
     return companyRepositoryHibernate.save(mapToCompany(newCompany));
   }
 
+  @Override
   public void insertEmployeeToCompany(Integer companyId, Integer employeeId) {
     Company company = companyRepositoryHibernate.findById(companyId).orElseThrow();
     company.getEmployeeIds().add(employeeId);
     companyRepositoryHibernate.save(company);
   }
 
+  @Override
   public CompanyWithUsersDto getCompany(Integer companyId, boolean withUserInfo) {
     Company company = companyRepositoryHibernate.findById(companyId).orElseThrow();
 
@@ -61,6 +64,7 @@ public class CompanyService {
         company.getId(), company.getCompanyName(), company.getBudget(), null);
   }
 
+  @Override
   public void updateCompany(Integer companyId, CompanyDto newCompanyData) {
     Company company = companyRepositoryHibernate.findById(companyId).orElseThrow();
 
@@ -71,10 +75,12 @@ public class CompanyService {
     companyRepositoryHibernate.save(company);
   }
 
+  @Override
   public void deleteCompany(Integer companyId) {
     companyRepositoryHibernate.deleteById(companyId);
   }
 
+  @Override
   public List<CompanyWithUsersDto> getAllCompanies() {
     List<CompanyWithUsersDto> resultDto = new LinkedList<>();
     List<Company> companies = companyRepositoryHibernate.findAll();

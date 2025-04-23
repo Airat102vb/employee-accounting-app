@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import pet.project.UserService;
 import pet.project.dto.UserDto;
 import pet.project.dto.UserWithCompanyDto;
+import pet.project.service.UserService;
 
 @RestController
 @RequestMapping("/user")

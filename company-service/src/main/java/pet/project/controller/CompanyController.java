@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import pet.project.CompanyService;
 import pet.project.dto.CompanyDto;
 import pet.project.dto.CompanyWithUsersDto;
 import pet.project.entity.Company;
+import pet.project.service.CompanyService;
 
 @RestController
 @RequestMapping("/company")

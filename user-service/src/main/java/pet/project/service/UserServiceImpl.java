@@ -1,4 +1,4 @@
-package pet.project;
+package pet.project.service;
 
 import static pet.project.mapper.UserMapper.mapToUser;
 import static pet.project.mapper.UserMapper.mapToUserDto;
@@ -19,24 +19,26 @@ import pet.project.dto.UserWithCompanyDto;
 import pet.project.entity.User;
 
 @Service
-public class UserService {
+public class UserServiceImpl implements UserService {
 
   private final Logger logger = LoggerFactory.getLogger("UserService");
   private CompanyServiceClient companyServiceClient;
   private UserRepositoryHibernate userRepositoryHibernate;
 
   @Autowired
-  public UserService(
+  public UserServiceImpl(
       UserRepositoryHibernate userRepositoryHibernate, CompanyServiceClient companyServiceClient) {
     this.companyServiceClient = companyServiceClient;
     this.userRepositoryHibernate = userRepositoryHibernate;
   }
 
+  @Override
   public Integer addUser(UserDto newUser) {
     User newCratedUser = userRepositoryHibernate.save(mapToUser(newUser));
     return mapToUserDto(newCratedUser).id();
   }
 
+  @Override
   public UserWithCompanyDto getUser(Integer userId, boolean withCompanyInfo) {
     User user = userRepositoryHibernate.findById(userId).orElseThrow();
     if (withCompanyInfo && Objects.nonNull(user.getCompanyId())) {
@@ -47,6 +49,7 @@ public class UserService {
     return mapToUserWithCompanyDto(user);
   }
 
+  @Override
   public UserDto update(Integer userId, UserDto newUserData) {
     User user = userRepositoryHibernate.findById(userId).orElseThrow();
 
@@ -59,10 +62,12 @@ public class UserService {
     return mapToUserDto(updatedUserDto);
   }
 
+  @Override
   public void deleteUser(Integer userId) {
     userRepositoryHibernate.deleteById(userId);
   }
 
+  @Override
   public List<UserWithCompanyDto> getAllUsers() {
     List<UserWithCompanyDto> resultDto = new LinkedList<>();
     List<User> users = userRepositoryHibernate.findAll();
