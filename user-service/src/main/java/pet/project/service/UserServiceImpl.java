@@ -4,7 +4,7 @@ import static pet.project.mapper.UserMapper.mapToUser;
 import static pet.project.mapper.UserMapper.mapToUserDto;
 import static pet.project.mapper.UserMapper.mapToUserWithCompanyDto;
 
-import jakarta.ws.rs.NotFoundException;
+import jakarta.validation.Valid;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -34,7 +34,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public Integer addUser(UserDto newUser) {
+  public Integer addUser(@Valid UserDto newUser) {
     User newCratedUser = userRepositoryHibernate.save(mapToUser(newUser));
     return mapToUserDto(newCratedUser).id();
   }
@@ -51,8 +51,8 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public UserDto update(Integer userId, UserDto newUserData) {
-    User user = userRepositoryHibernate.findById(userId).orElseThrow(NotFoundException::new);
+  public UserDto update(Integer userId, @Valid UserDto newUserData) {
+    User user = userRepositoryHibernate.findById(userId).orElseThrow();
     User userData = mapToUser(newUserData);
     userData.setId(user.getId());
     User updatedUserDto = userRepositoryHibernate.save(userData);

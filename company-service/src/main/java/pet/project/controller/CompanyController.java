@@ -1,11 +1,16 @@
 package pet.project.controller;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.QueryParam;
 import java.net.URI;
+import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +25,7 @@ import pet.project.dto.CompanyWithUsersDto;
 import pet.project.entity.Company;
 import pet.project.service.CompanyService;
 
+@Validated
 @RestController
 @RequestMapping("/company")
 public class CompanyController {
@@ -32,27 +38,27 @@ public class CompanyController {
   }
 
   @PostMapping
-  public ResponseEntity addCompany(@RequestBody CompanyDto newCompany) {
+  public ResponseEntity addCompany(@Valid @RequestBody CompanyDto newCompany) {
     Company company = companyService.addCompany(newCompany);
-    URI uri = ServletUriComponentsBuilder
-        .fromCurrentRequest()
-        .path("/{id}")
-        .buildAndExpand(company.getId())
-        .toUri();
+    URI uri =
+        ServletUriComponentsBuilder.fromCurrentRequest()
+            .path("/{id}")
+            .buildAndExpand(company.getId())
+            .toUri();
     return ResponseEntity.created(uri).body(company);
   }
 
   @PostMapping("/user/{id}")
   public ResponseEntity addEmployee(
-      @PathVariable(value = "id") Integer companyId,
-      @QueryParam(value = "employeeId") Integer employeeId) {
+      @PathVariable(value = "id") @Min(0) Integer companyId,
+      @QueryParam(value = "employeeId") @Min(0) Integer employeeId) {
     companyService.insertEmployeeToCompany(companyId, employeeId);
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 
   @GetMapping("{id}")
   public ResponseEntity<CompanyWithUsersDto> getCompany(
-      @PathVariable(value = "id") Integer companyId,
+      @PathVariable(value = "id") @Min(0) Integer companyId,
       @RequestParam(value = "withUserInfo", defaultValue = "false") boolean withUserInfo) {
     CompanyWithUsersDto company = companyService.getCompany(companyId, withUserInfo);
     return ResponseEntity.ok(company);
@@ -60,13 +66,14 @@ public class CompanyController {
 
   @PutMapping("{id}")
   public ResponseEntity updateCompany(
-      @PathVariable(value = "id") Integer companyId, @RequestBody CompanyDto newCompanyData) {
+      @PathVariable(value = "id") @Min(0) Integer companyId,
+      @Valid @RequestBody CompanyDto newCompanyData) {
     companyService.updateCompany(companyId, newCompanyData);
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 
   @DeleteMapping("{id}")
-  public ResponseEntity deleteCompany(@PathVariable(value = "id") Integer companyId) {
+  public ResponseEntity deleteCompany(@PathVariable(value = "id") @Min(0) Integer companyId) {
     companyService.deleteCompany(companyId);
     return ResponseEntity.status(HttpStatus.OK).build();
   }
@@ -74,5 +81,10 @@ public class CompanyController {
   @GetMapping
   public ResponseEntity getAllCompanies() {
     return ResponseEntity.status(HttpStatus.OK).body(companyService.getAllCompanies());
+  }
+
+  @ExceptionHandler(NoSuchElementException.class)
+  public ResponseEntity<String> onNoSuchElementException(NoSuchElementException exception) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Company not found");
   }
 }

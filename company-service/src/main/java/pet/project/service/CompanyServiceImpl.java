@@ -3,6 +3,7 @@ package pet.project.service;
 import static pet.project.mapper.CompanyMapper.mapToCompany;
 import static pet.project.mapper.CompanyMapper.mapToUserWithCompanyDto;
 
+import jakarta.validation.Valid;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -32,7 +33,7 @@ public class CompanyServiceImpl implements CompanyService {
   }
 
   @Override
-  public Company addCompany(CompanyDto newCompany) {
+  public Company addCompany(@Valid CompanyDto newCompany) {
     return companyRepositoryHibernate.save(mapToCompany(newCompany));
   }
 
@@ -64,7 +65,7 @@ public class CompanyServiceImpl implements CompanyService {
   }
 
   @Override
-  public void updateCompany(Integer companyId, CompanyDto newCompanyData) {
+  public void updateCompany(Integer companyId, @Valid CompanyDto newCompanyData) {
     Company company = companyRepositoryHibernate.findById(companyId).orElseThrow();
     Company companyData = mapToCompany(newCompanyData);
     companyData.setId(company.getId());
