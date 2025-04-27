@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import java.net.URI;
 import java.util.NoSuchElementException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,7 @@ import pet.project.dto.UserWithCompanyDto;
 import pet.project.entity.User;
 import pet.project.service.UserService;
 
+@Slf4j
 @Validated
 @RestController
 @RequestMapping("/user")
@@ -38,6 +40,7 @@ public class UserController {
 
   @PostMapping
   public ResponseEntity addUser(@Valid @RequestBody UserDto newUser) {
+    log.info("Добавление нового юзера: {}", newUser);
     User user = userService.addUser(newUser);
     URI uri =
         ServletUriComponentsBuilder.fromCurrentRequest()

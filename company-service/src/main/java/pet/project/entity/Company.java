@@ -8,12 +8,16 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.util.List;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 @Table(name = "companies")
 public class Company {
-
-  public Company() {}
 
   public Company(Integer id, String companyName, BigDecimal budget, List<Integer> employeeIds) {
     this.id = id;
@@ -34,36 +38,4 @@ public class Company {
 
   @Column(name = "employee_ids")
   List<Integer> employeeIds;
-
-  public Integer getId() {
-    return id;
-  }
-
-  public void setId(Integer id) {
-    this.id = id;
-  }
-
-  public String getCompanyName() {
-    return companyName;
-  }
-
-  public void setCompanyName(String companyName) {
-    this.companyName = companyName;
-  }
-
-  public BigDecimal getBudget() {
-    return budget;
-  }
-
-  public void setBudget(BigDecimal budget) {
-    this.budget = budget;
-  }
-
-  public List<Integer> getEmployeeIds() {
-    return employeeIds;
-  }
-
-  public void setEmployeeIds(List<Integer> employeeIds) {
-    this.employeeIds = employeeIds;
-  }
 }

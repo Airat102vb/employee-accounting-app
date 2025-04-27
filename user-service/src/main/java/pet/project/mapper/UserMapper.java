@@ -1,6 +1,5 @@
 package pet.project.mapper;
 
-import pet.project.dto.CompanyDto;
 import pet.project.dto.UserDto;
 import pet.project.dto.UserWithCompanyDto;
 import pet.project.entity.User;
@@ -27,19 +26,11 @@ public class UserMapper {
 
   public static UserWithCompanyDto mapToUserWithCompanyDto(User user, String companyName) {
     return new UserWithCompanyDto(
-        user.getId(),
-        user.getFirstName(),
-        user.getLastName(),
-        user.getPhoneNumber(),
-        companyName);
+        user.getId(), user.getFirstName(), user.getLastName(), user.getPhoneNumber(), companyName);
   }
 
   public static UserWithCompanyDto mapToUserWithCompanyDto(User user) {
     return new UserWithCompanyDto(
-        user.getId(),
-        user.getFirstName(),
-        user.getLastName(),
-        user.getPhoneNumber(),
-        null);
+        user.getId(), user.getFirstName(), user.getLastName(), user.getPhoneNumber(), null);
   }
 }

@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.QueryParam;
 import java.net.URI;
 import java.util.NoSuchElementException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ import pet.project.dto.CompanyWithUsersDto;
 import pet.project.entity.Company;
 import pet.project.service.CompanyService;
 
+@Slf4j
 @Validated
 @RestController
 @RequestMapping("/company")
@@ -39,6 +41,7 @@ public class CompanyController {
 
   @PostMapping
   public ResponseEntity addCompany(@Valid @RequestBody CompanyDto newCompany) {
+    log.info("Запрос на добавление компании: {}", newCompany);
     Company company = companyService.addCompany(newCompany);
     URI uri =
         ServletUriComponentsBuilder.fromCurrentRequest()

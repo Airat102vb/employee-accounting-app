@@ -6,14 +6,19 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 @Table(name = "users")
 public class User {
 
-  public User() {}
-
-  public User(Integer id, String firstName, String lastName, String phoneNumber, Integer companyId) {
+  public User(
+      Integer id, String firstName, String lastName, String phoneNumber, Integer companyId) {
     this.id = id;
     this.firstName = firstName;
     this.lastName = lastName;
@@ -36,44 +41,4 @@ public class User {
 
   @Column(name = "company_id")
   private Integer companyId;
-
-  public Integer getId() {
-    return id;
-  }
-
-  public void setId(int id) {
-    this.id = id;
-  }
-
-  public String getFirstName() {
-    return firstName;
-  }
-
-  public void setFirstName(String firstName) {
-    this.firstName = firstName;
-  }
-
-  public String getLastName() {
-    return lastName;
-  }
-
-  public void setLastName(String lastName) {
-    this.lastName = lastName;
-  }
-
-  public String getPhoneNumber() {
-    return phoneNumber;
-  }
-
-  public void setPhoneNumber(String phoneNumber) {
-    this.phoneNumber = phoneNumber;
-  }
-
-  public Integer getCompanyId() {
-    return companyId;
-  }
-
-  public void setCompanyId(int companyId) {
-    this.companyId = companyId;
-  }
 }
