@@ -1,7 +1,7 @@
 ### Pet-project based on Spring Cloud technologies
 
 ---
-<center><b>Description</b></center>
+<p style="text-align: center;"><b>Description</b></p>  
 
 <b>Project consists from:</b>  
 - <b>Spring tech:</b> gateway, eureka server, config cloud, two eureka clients (user-service, company-service);  
@@ -15,7 +15,7 @@ There are two profiles for start: `local`; `docker`.
 `API-GATEWAY` is up on port 8082
 
 ---
-<center><b>How to launch project</b></center>
+<p style="text-align: center;"><b>How to launch project</b></p>
 
 1. Clone the project
 2. Execute `mvn clean package -DskipTests=true` from root directory
@@ -36,6 +36,15 @@ There are two profiles for start: `local`; `docker`.
       # Get all companies with users
       curl --location 'http://localhost:8082/company-service/company'
       ```
+   **OR** by launch `generate_test_data.py` and test by
+
+   ```bash
+   # Get users with pagination
+   curl --location 'http://localhost:8082/user-service/user?pageNumber=0&pageSize=2'
+   
+   # Get companies with pagination
+   curl --location 'http://localhost:8082/company-service/company?pageNumber=0&pageSize=2'
+   ```
 ---
 <b>Query examples: user-service</b>  
 
