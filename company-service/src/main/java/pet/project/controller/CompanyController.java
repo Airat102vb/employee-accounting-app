@@ -79,8 +79,11 @@ public class CompanyController {
   }
 
   @GetMapping
-  public ResponseEntity getAllCompanies() {
-    return ResponseEntity.status(HttpStatus.OK).body(companyService.getAllCompanies());
+  public ResponseEntity getCompanies(
+      @RequestParam(value = "pageNumber", defaultValue = "0") Integer pageNumber,
+      @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
+    return ResponseEntity.status(HttpStatus.OK)
+        .body(companyService.getCompanies(pageNumber, pageSize));
   }
 
   @ExceptionHandler(NoSuchElementException.class)

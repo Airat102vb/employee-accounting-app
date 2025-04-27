@@ -10,6 +10,9 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import pet.project.clients.UserServiceClient;
 import pet.project.dao.CompanyRepositoryHibernate;
@@ -78,9 +81,10 @@ public class CompanyServiceImpl implements CompanyService {
   }
 
   @Override
-  public List<CompanyWithUsersDto> getAllCompanies() {
+  public PageImpl<CompanyWithUsersDto> getCompanies(int pageNumber, int pageSize) {
     List<CompanyWithUsersDto> resultDto = new LinkedList<>();
-    List<Company> companies = companyRepositoryHibernate.findAll();
+    Page<Company> companies =
+        companyRepositoryHibernate.findAll(PageRequest.of(pageNumber, pageSize));
 
     for (Company company : companies) {
       if (Objects.nonNull(company.getEmployeeIds()) && !company.getEmployeeIds().isEmpty()) {
@@ -99,6 +103,7 @@ public class CompanyServiceImpl implements CompanyService {
         resultDto.add(mapToUserWithCompanyDto(company, user));
       }
     }
-    return resultDto;
+    return new PageImpl(
+        resultDto, PageRequest.of(pageNumber, pageSize), companies.getTotalElements());
   }
 }

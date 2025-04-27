@@ -2,6 +2,7 @@ package pet.project.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import java.net.URI;
 import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,8 +18,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pet.project.dto.UserDto;
 import pet.project.dto.UserWithCompanyDto;
+import pet.project.entity.User;
 import pet.project.service.UserService;
 
 @Validated
@@ -35,11 +38,13 @@ public class UserController {
 
   @PostMapping
   public ResponseEntity addUser(@Valid @RequestBody UserDto newUser) {
-    Integer result = userService.addUser(newUser);
-    return result == 0
-        ? ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Не удалось добавить пользователя")
-        : ResponseEntity.status(HttpStatus.CREATED)
-            .body("Создан пользователь с id = %s".formatted(result));
+    User user = userService.addUser(newUser);
+    URI uri =
+        ServletUriComponentsBuilder.fromCurrentRequest()
+            .path("/{id}")
+            .buildAndExpand(user.getId())
+            .toUri();
+    return ResponseEntity.created(uri).body(user);
   }
 
   @GetMapping("{id}")
@@ -63,8 +68,10 @@ public class UserController {
   }
 
   @GetMapping
-  public ResponseEntity getAllUsers() {
-    return ResponseEntity.status(HttpStatus.OK).body(userService.getAllUsers());
+  public ResponseEntity getUsers(
+      @RequestParam(value = "pageNumber", defaultValue = "0") Integer pageNumber,
+      @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
+    return ResponseEntity.status(HttpStatus.OK).body(userService.getUsers(pageNumber, pageSize));
   }
 
   @ExceptionHandler(NoSuchElementException.class)

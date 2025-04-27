@@ -1,9 +1,9 @@
 package pet.project.service;
 
+import org.springframework.data.domain.PageImpl;
 import pet.project.dto.CompanyDto;
 import pet.project.dto.CompanyWithUsersDto;
 import pet.project.entity.Company;
-import java.util.List;
 
 public interface CompanyService {
 
@@ -17,5 +17,5 @@ public interface CompanyService {
 
   void deleteCompany(Integer companyId);
 
-  List<CompanyWithUsersDto> getAllCompanies();
+  PageImpl<CompanyWithUsersDto> getCompanies(int pageNumber, int pageSize);
 }

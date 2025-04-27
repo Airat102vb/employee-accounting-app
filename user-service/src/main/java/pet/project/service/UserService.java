@@ -1,12 +1,13 @@
 package pet.project.service;
 
+import org.springframework.data.domain.PageImpl;
 import pet.project.dto.UserDto;
 import pet.project.dto.UserWithCompanyDto;
-import java.util.List;
+import pet.project.entity.User;
 
 public interface UserService {
 
-  Integer addUser(UserDto newUser);
+  User addUser(UserDto newUser);
 
   UserWithCompanyDto getUser(Integer userId, boolean withCompanyInfo);
 
@@ -14,5 +15,5 @@ public interface UserService {
 
   void deleteUser(Integer userId);
 
-  List<UserWithCompanyDto> getAllUsers();
+  PageImpl<UserWithCompanyDto> getUsers(int pageNumber, int pageSize);
 }

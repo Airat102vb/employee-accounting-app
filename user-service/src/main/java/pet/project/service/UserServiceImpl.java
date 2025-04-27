@@ -11,6 +11,9 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import pet.project.clients.CompanyServiceClient;
 import pet.project.dao.UserRepositoryHibernate;
@@ -34,9 +37,8 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public Integer addUser(@Valid UserDto newUser) {
-    User newCratedUser = userRepositoryHibernate.save(mapToUser(newUser));
-    return mapToUserDto(newCratedUser).id();
+  public User addUser(@Valid UserDto newUser) {
+    return userRepositoryHibernate.save(mapToUser(newUser));
   }
 
   @Override
@@ -65,15 +67,16 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public List<UserWithCompanyDto> getAllUsers() {
+  public PageImpl<UserWithCompanyDto> getUsers(int pageNumber, int pageSize) {
     List<UserWithCompanyDto> resultDto = new LinkedList<>();
-    List<User> users = userRepositoryHibernate.findAll();
+    Page<User> users = userRepositoryHibernate.findAll(PageRequest.of(pageNumber, pageSize));
 
     for (User user : users) {
       CompanyWithUsersDto companyDto =
           companyServiceClient.getCompany(user.getCompanyId(), false).getBody();
       resultDto.add(mapToUserWithCompanyDto(user, companyDto.companyName()));
     }
-    return resultDto;
+    return new PageImpl<>(
+        resultDto, PageRequest.of(pageNumber, pageSize), users.getTotalElements());
   }
 }
