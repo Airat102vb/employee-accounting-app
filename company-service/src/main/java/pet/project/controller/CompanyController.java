@@ -41,7 +41,7 @@ public class CompanyController {
 
   @PostMapping
   public ResponseEntity addCompany(@Valid @RequestBody CompanyDto newCompany) {
-    log.info("Запрос на добавление компании: {}", newCompany);
+    log.info("Добавление компании: {}", newCompany);
     Company company = companyService.addCompany(newCompany);
     URI uri =
         ServletUriComponentsBuilder.fromCurrentRequest()
@@ -53,30 +53,34 @@ public class CompanyController {
 
   @PostMapping("/user/{id}")
   public ResponseEntity addEmployee(
-      @PathVariable(value = "id") @Min(0) Integer companyId,
-      @QueryParam(value = "employeeId") @Min(0) Integer employeeId) {
+      @PathVariable(value = "id") @Min(1) Integer companyId,
+      @QueryParam(value = "employeeId") @Min(1) Integer employeeId) {
+    log.info("Добавление сотрудника: {}, в компанию {}", employeeId, companyId);
     companyService.insertEmployeeToCompany(companyId, employeeId);
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 
   @GetMapping("{id}")
   public ResponseEntity<CompanyWithUsersDto> getCompany(
-      @PathVariable(value = "id") @Min(0) Integer companyId,
+      @PathVariable(value = "id") @Min(1) Integer companyId,
       @RequestParam(value = "withUserInfo", defaultValue = "false") boolean withUserInfo) {
+    log.info("Получение компании: {}, с флагом withUserInfo {}", companyId, withUserInfo);
     CompanyWithUsersDto company = companyService.getCompany(companyId, withUserInfo);
     return ResponseEntity.ok(company);
   }
 
   @PutMapping("{id}")
   public ResponseEntity updateCompany(
-      @PathVariable(value = "id") @Min(0) Integer companyId,
+      @PathVariable(value = "id") @Min(1) Integer companyId,
       @Valid @RequestBody CompanyDto newCompanyData) {
+    log.info("Обновление компании: {}, новыми данными {}", companyId, newCompanyData);
     companyService.updateCompany(companyId, newCompanyData);
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 
   @DeleteMapping("{id}")
-  public ResponseEntity deleteCompany(@PathVariable(value = "id") @Min(0) Integer companyId) {
+  public ResponseEntity deleteCompany(@PathVariable(value = "id") @Min(1) Integer companyId) {
+    log.info("Удаление компании: {}", companyId);
     companyService.deleteCompany(companyId);
     return ResponseEntity.status(HttpStatus.OK).build();
   }
@@ -85,6 +89,10 @@ public class CompanyController {
   public ResponseEntity getCompanies(
       @RequestParam(value = "pageNumber", defaultValue = "0") Integer pageNumber,
       @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
+    log.info(
+        "Получение списка компаний со станицы {}, с количеством компаний на странице {}",
+        pageNumber,
+        pageSize);
     return ResponseEntity.status(HttpStatus.OK)
         .body(companyService.getCompanies(pageNumber, pageSize));
   }

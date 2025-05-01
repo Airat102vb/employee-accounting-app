@@ -37,41 +37,45 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public User addUser(@Valid UserDto newUser) {
-    log.info("Добавление нового пользователя: {}", newUser);
-    return userRepositoryHibernate.save(mapToUser(newUser));
+    User user = userRepositoryHibernate.save(mapToUser(newUser));
+    log.info("Новый сотрудник успешно добавлен: {}", user);
+    return user;
   }
 
   @Override
   public UserWithCompanyDto getUser(Integer userId, boolean withCompanyInfo) {
-    log.info("Получение пользователя: {}", userId);
     User user = userRepositoryHibernate.findById(userId).orElseThrow();
     if (withCompanyInfo && Objects.nonNull(user.getCompanyId())) {
       CompanyWithUsersDto company =
           companyServiceClient.getCompany(user.getCompanyId(), false).getBody();
       return mapToUserWithCompanyDto(user, company.companyName());
     }
-    return mapToUserWithCompanyDto(user);
+
+    UserWithCompanyDto userWithCompanyDto = mapToUserWithCompanyDto(user);
+    log.info("Сотрудник успешно получен: {}", userWithCompanyDto);
+    return userWithCompanyDto;
   }
 
   @Override
   public UserDto update(Integer userId, @Valid UserDto newUserData) {
-    log.info("Обновление пользователя: {} данными {}", userId, newUserData);
     User user = userRepositoryHibernate.findById(userId).orElseThrow();
     User userData = mapToUser(newUserData);
     userData.setId(user.getId());
     User updatedUserDto = userRepositoryHibernate.save(userData);
-    return mapToUserDto(updatedUserDto);
+
+    UserDto userDto = mapToUserDto(updatedUserDto);
+    log.info("Сотрудник успешно обновлен: {}", userDto);
+    return userDto;
   }
 
   @Override
   public void deleteUser(Integer userId) {
-    log.info("Удаление пользователя: {}", userId);
     userRepositoryHibernate.deleteById(userId);
+    log.info("Сотрудник удален: {}", userId);
   }
 
   @Override
   public PageImpl<UserWithCompanyDto> getUsers(int pageNumber, int pageSize) {
-    log.info("Получение списка пользователей: pageNumber {}; pageSize {}", pageNumber, pageSize);
     List<UserWithCompanyDto> resultDto = new LinkedList<>();
     Page<User> users = userRepositoryHibernate.findAll(PageRequest.of(pageNumber, pageSize));
 
@@ -80,7 +84,13 @@ public class UserServiceImpl implements UserService {
           companyServiceClient.getCompany(user.getCompanyId(), false).getBody();
       resultDto.add(mapToUserWithCompanyDto(user, companyDto.companyName()));
     }
-    return new PageImpl<>(
-        resultDto, PageRequest.of(pageNumber, pageSize), users.getTotalElements());
+
+    PageImpl<UserWithCompanyDto> page =
+        new PageImpl<>(resultDto, PageRequest.of(pageNumber, pageSize), users.getTotalElements());
+    log.info(
+        "Успешно получен список сотрудников с параметрами pageNumber = {}, pageSize = {}",
+        pageNumber,
+        pageSize);
+    return page;
   }
 }

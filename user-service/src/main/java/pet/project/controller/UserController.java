@@ -40,7 +40,7 @@ public class UserController {
 
   @PostMapping
   public ResponseEntity addUser(@Valid @RequestBody UserDto newUser) {
-    log.info("Добавление нового юзера: {}", newUser);
+    log.info("Добавление сотрудника: {}", newUser);
     User user = userService.addUser(newUser);
     URI uri =
         ServletUriComponentsBuilder.fromCurrentRequest()
@@ -52,8 +52,9 @@ public class UserController {
 
   @GetMapping("{id}")
   public ResponseEntity<UserWithCompanyDto> getUser(
-      @PathVariable(value = "id") @Min(0) Integer userId,
+      @PathVariable(value = "id") @Min(1) Integer userId,
       @RequestParam(value = "withCompanyInfo", defaultValue = "false") boolean withCompanyInfo) {
+    log.info("Получение сотрудника: {}, с флагом withCompanyInfo {}", userId, withCompanyInfo);
     UserWithCompanyDto user = userService.getUser(userId, withCompanyInfo);
     return ResponseEntity.ok(user);
   }
@@ -61,11 +62,13 @@ public class UserController {
   @PutMapping("{id}")
   public ResponseEntity updateUser(
       @PathVariable(value = "id") Integer userId, @RequestBody UserDto newUserData) {
+    log.info("Получение сотрудника: {}, новыми данными {}", userId, newUserData);
     return ResponseEntity.status(HttpStatus.OK).body(userService.update(userId, newUserData));
   }
 
   @DeleteMapping("{id}")
-  public ResponseEntity deleteUser(@PathVariable(value = "id") @Min(0) Integer userId) {
+  public ResponseEntity deleteUser(@PathVariable(value = "id") @Min(1) Integer userId) {
+    log.info("Удаление сотрудника: {}", userId);
     userService.deleteUser(userId);
     return ResponseEntity.status(HttpStatus.OK).build();
   }
@@ -74,6 +77,10 @@ public class UserController {
   public ResponseEntity getUsers(
       @RequestParam(value = "pageNumber", defaultValue = "0") Integer pageNumber,
       @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
+    log.info(
+        "Получение списка сотрудников со станицы {}, с количеством на странице {}",
+        pageNumber,
+        pageSize);
     return ResponseEntity.status(HttpStatus.OK).body(userService.getUsers(pageNumber, pageSize));
   }
 

@@ -36,21 +36,22 @@ public class CompanyServiceImpl implements CompanyService {
 
   @Override
   public Company addCompany(@Valid CompanyDto newCompany) {
-    log.info("Добавление компании: {}", newCompany);
-    return companyRepositoryHibernate.save(mapToCompany(newCompany));
+    Company company = companyRepositoryHibernate.save(mapToCompany(newCompany));
+    log.info("Компания успешно добавлена: {}", company);
+    return company;
   }
 
   @Override
   public void insertEmployeeToCompany(Integer companyId, Integer employeeId) {
-    log.info("Добавление сотрудника {} в компанию {}", employeeId, companyId);
     Company company = companyRepositoryHibernate.findById(companyId).orElseThrow();
     company.getEmployeeIds().add(employeeId);
     companyRepositoryHibernate.save(company);
+    log.info("Сотрудник id = {} успешно добавлен в компанию {}", employeeId, company);
   }
 
   @Override
   public CompanyWithUsersDto getCompany(Integer companyId, boolean withUserInfo) {
-    log.info("Получение компании: {}", companyId);
+    CompanyWithUsersDto companyWithUsersDto;
     Company company = companyRepositoryHibernate.findById(companyId).orElseThrow();
 
     if (withUserInfo) {
@@ -63,30 +64,33 @@ public class CompanyServiceImpl implements CompanyService {
                           dto.id(), dto.firstName(), dto.firstName(), dto.phoneNumber(), companyId))
               .toList();
 
-      return mapToUserWithCompanyDto(company, employees);
+      companyWithUsersDto = mapToUserWithCompanyDto(company, employees);
+      log.info("Компания успешно получена: {}", companyWithUsersDto);
+      return companyWithUsersDto;
     }
 
-    return mapToUserWithCompanyDto(company, null);
+    companyWithUsersDto = mapToUserWithCompanyDto(company, null);
+    log.info("Компания успешно получена: {}", companyWithUsersDto);
+    return companyWithUsersDto;
   }
 
   @Override
   public void updateCompany(Integer companyId, @Valid CompanyDto newCompanyData) {
-    log.info("Обновление компании: {} данными {}", companyId, newCompanyData);
     Company company = companyRepositoryHibernate.findById(companyId).orElseThrow();
     Company companyData = mapToCompany(newCompanyData);
     companyData.setId(company.getId());
-    companyRepositoryHibernate.save(company);
+    Company updated = companyRepositoryHibernate.save(companyData);
+    log.info("Компании успешно обновлена: {}", updated);
   }
 
   @Override
   public void deleteCompany(Integer companyId) {
-    log.info("Удаление компании: {}", companyId);
     companyRepositoryHibernate.deleteById(companyId);
+    log.info("Компания удалена: {}", companyId);
   }
 
   @Override
   public PageImpl<CompanyWithUsersDto> getCompanies(int pageNumber, int pageSize) {
-    log.info("Получение списка компаний: pageNumber {}; pageSize {}", pageNumber, pageSize);
     List<CompanyWithUsersDto> resultDto = new LinkedList<>();
     Page<Company> companies =
         companyRepositoryHibernate.findAll(PageRequest.of(pageNumber, pageSize));
@@ -108,7 +112,13 @@ public class CompanyServiceImpl implements CompanyService {
         resultDto.add(mapToUserWithCompanyDto(company, user));
       }
     }
-    return new PageImpl(
-        resultDto, PageRequest.of(pageNumber, pageSize), companies.getTotalElements());
+
+    PageImpl<CompanyWithUsersDto> pageResult =
+        new PageImpl(resultDto, PageRequest.of(pageNumber, pageSize), companies.getTotalElements());
+    log.info(
+        "Успешно получен список компаний с параметрами pageNumber = {}, pageSize = {}",
+        pageNumber,
+        pageSize);
+    return pageResult;
   }
 }
