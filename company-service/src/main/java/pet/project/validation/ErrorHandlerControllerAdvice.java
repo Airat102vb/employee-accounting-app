@@ -4,10 +4,12 @@ import jakarta.validation.ConstraintViolationException;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import pet.project.exception.NoCompanyFoundException;
 
 @RestControllerAdvice
 public class ErrorHandlerControllerAdvice {
@@ -30,5 +32,10 @@ public class ErrorHandlerControllerAdvice {
     return methodArgumentNotValid.getBindingResult().getFieldErrors().stream()
         .map(fieldError -> new Violation(fieldError.getField(), fieldError.getDefaultMessage()))
         .toList();
+  }
+
+  @ExceptionHandler(NoCompanyFoundException.class)
+  public ResponseEntity<String> onNoCompanyFoundException(NoCompanyFoundException exception) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
   }
 }

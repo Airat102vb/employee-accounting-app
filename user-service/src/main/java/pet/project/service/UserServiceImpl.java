@@ -20,6 +20,7 @@ import pet.project.dto.CompanyWithUsersDto;
 import pet.project.dto.UserDto;
 import pet.project.dto.UserWithCompanyDto;
 import pet.project.entity.User;
+import pet.project.exception.NoEmployeeFoundException;
 
 @Slf4j
 @Service
@@ -44,7 +45,10 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public UserWithCompanyDto getUser(Integer userId, boolean withCompanyInfo) {
-    User user = userRepositoryHibernate.findById(userId).orElseThrow();
+    User user =
+        userRepositoryHibernate
+            .findById(userId)
+            .orElseThrow(() -> new NoEmployeeFoundException(userId));
     if (withCompanyInfo && Objects.nonNull(user.getCompanyId())) {
       CompanyWithUsersDto company =
           companyServiceClient.getCompany(user.getCompanyId(), false).getBody();
@@ -58,7 +62,10 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public UserDto update(Integer userId, @Valid UserDto newUserData) {
-    User user = userRepositoryHibernate.findById(userId).orElseThrow();
+    User user =
+        userRepositoryHibernate
+            .findById(userId)
+            .orElseThrow(() -> new NoEmployeeFoundException(userId));
     User userData = mapToUser(newUserData);
     userData.setId(user.getId());
     User updatedUserDto = userRepositoryHibernate.save(userData);

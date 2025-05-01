@@ -20,6 +20,7 @@ import pet.project.dto.CompanyDto;
 import pet.project.dto.CompanyWithUsersDto;
 import pet.project.dto.UserDto;
 import pet.project.entity.Company;
+import pet.project.exception.NoCompanyFoundException;
 
 @Slf4j
 @Service
@@ -44,7 +45,10 @@ public class CompanyServiceImpl implements CompanyService {
 
   @Override
   public void insertEmployeeToCompany(Integer companyId, Integer employeeId) {
-    Company company = companyRepositoryHibernate.findById(companyId).orElseThrow();
+    Company company =
+        companyRepositoryHibernate
+            .findById(companyId)
+            .orElseThrow(() -> new NoCompanyFoundException(companyId));
     company.getEmployeeIds().add(employeeId);
     companyRepositoryHibernate.save(company);
     log.info("Сотрудник id = {} успешно добавлен в компанию {}", employeeId, company);
@@ -53,7 +57,10 @@ public class CompanyServiceImpl implements CompanyService {
   @Override
   public CompanyWithUsersDto getCompany(Integer companyId, boolean withUserInfo) {
     CompanyWithUsersDto companyWithUsersDto;
-    Company company = companyRepositoryHibernate.findById(companyId).orElseThrow();
+    Company company =
+        companyRepositoryHibernate
+            .findById(companyId)
+            .orElseThrow(() -> new NoCompanyFoundException(companyId));
 
     if (withUserInfo) {
       List<UserDto> employees =
@@ -77,7 +84,10 @@ public class CompanyServiceImpl implements CompanyService {
 
   @Override
   public void updateCompany(Integer companyId, @Valid CompanyDto newCompanyData) {
-    Company company = companyRepositoryHibernate.findById(companyId).orElseThrow();
+    Company company =
+        companyRepositoryHibernate
+            .findById(companyId)
+            .orElseThrow(() -> new NoCompanyFoundException(companyId));
     Company companyData = mapToCompany(newCompanyData);
     companyData.setId(company.getId());
     Company updated = companyRepositoryHibernate.save(companyData);
