@@ -2,6 +2,7 @@ package pet.project.service;
 
 import static pet.project.mapper.CompanyMapper.mapToCompany;
 import static pet.project.mapper.CompanyMapper.mapToUserWithCompanyDto;
+import static pet.project.mapper.UserMapper.mapToUserDto;
 
 import jakarta.validation.Valid;
 import java.util.LinkedList;
@@ -100,14 +101,7 @@ public class CompanyServiceImpl implements CompanyService {
         List<UserDto> user =
             company.getEmployeeIds().stream()
                 .map(empId -> userServiceClient.getUser(empId, false).getBody())
-                .map(
-                    dto ->
-                        new UserDto(
-                            dto.id(),
-                            dto.firstName(),
-                            dto.lastName(),
-                            dto.phoneNumber(),
-                            company.getId()))
+                .map(dto -> mapToUserDto(dto, company.getId()))
                 .toList();
         resultDto.add(mapToUserWithCompanyDto(company, user));
       }
