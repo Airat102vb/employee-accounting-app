@@ -12,6 +12,10 @@ public class CompanyMapper {
     return new CompanyDto(company.getId(), company.getCompanyName(), company.getBudget(), null);
   }
 
+  public static List<CompanyDto> mapToCompanyDtoList(List<Company> company) {
+    return company.stream().map(CompanyMapper::mapToCompanyDto).toList();
+  }
+
   public static Company mapToCompany(CompanyDto companyDto) {
     return new Company(
         companyDto.id(), companyDto.companyName(), companyDto.budget(), companyDto.employeeId());

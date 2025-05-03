@@ -1,5 +1,6 @@
 package pet.project.mapper;
 
+import java.util.List;
 import pet.project.dto.UserDto;
 import pet.project.dto.UserWithCompanyDto;
 import pet.project.entity.User;
@@ -13,6 +14,15 @@ public class UserMapper {
         user.getLastName(),
         user.getPhoneNumber(),
         user.getCompanyId());
+  }
+
+  public static List<UserDto> mapToUserDto(List<User> users) {
+    return users.stream().map(user -> new UserDto(
+        user.getId(),
+        user.getFirstName(),
+        user.getLastName(),
+        user.getPhoneNumber(),
+        user.getCompanyId())).toList();
   }
 
   public static User mapToUser(UserDto userDto) {
