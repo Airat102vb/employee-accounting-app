@@ -5,7 +5,7 @@
 
 <b>Project consists from:</b>  
 - <b>Spring tech:</b> gateway, eureka server, config cloud, two eureka clients (user-service, company-service);  
-- <b>Other tech:</b> PostgreSQL, Hibernate, Docker compose.
+- <b>Other tech:</b> PostgreSQL, Hibernate, Docker compose, Lombok, jakarta validation
 
 `user-service` - stores and manipulates with users  
 `company-service` - stores and manipulates with companies  
