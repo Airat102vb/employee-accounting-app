@@ -83,7 +83,7 @@ public class CompanyController {
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 
-  @GetMapping
+  @GetMapping("/page")
   public ResponseEntity getCompanies(
       @RequestParam(value = "pageNumber", defaultValue = "0") Integer pageNumber,
       @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {

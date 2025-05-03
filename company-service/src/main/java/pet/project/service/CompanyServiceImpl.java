@@ -2,12 +2,12 @@ package pet.project.service;
 
 import static pet.project.mapper.CompanyMapper.mapToCompany;
 import static pet.project.mapper.CompanyMapper.mapToUserWithCompanyDto;
-import static pet.project.mapper.UserMapper.mapToUserDto;
 
 import jakarta.validation.Valid;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -63,16 +63,10 @@ public class CompanyServiceImpl implements CompanyService {
             .orElseThrow(() -> new NoCompanyFoundException(companyId));
 
     if (withUserInfo) {
-      List<UserDto> employees =
-          company.getEmployeeIds().stream()
-              .map(id -> userServiceClient.getUser(id, true).getBody())
-              .map(
-                  dto ->
-                      new UserDto(
-                          dto.id(), dto.firstName(), dto.firstName(), dto.phoneNumber(), companyId))
-              .toList();
-
-      companyWithUsersDto = mapToUserWithCompanyDto(company, employees);
+      String ids =
+          company.getEmployeeIds().stream().map(String::valueOf).collect(Collectors.joining(","));
+      List<UserDto> users = userServiceClient.getUsers(ids).getBody();
+      companyWithUsersDto = mapToUserWithCompanyDto(company, users);
       log.info("Компания успешно получена: {}", companyWithUsersDto);
       return companyWithUsersDto;
     }
@@ -108,12 +102,10 @@ public class CompanyServiceImpl implements CompanyService {
 
     for (Company company : companies) {
       if (Objects.nonNull(company.getEmployeeIds()) && !company.getEmployeeIds().isEmpty()) {
-        List<UserDto> user =
-            company.getEmployeeIds().stream()
-                .map(empId -> userServiceClient.getUser(empId, false).getBody())
-                .map(dto -> mapToUserDto(dto, company.getId()))
-                .toList();
-        resultDto.add(mapToUserWithCompanyDto(company, user));
+        String ids =
+            company.getEmployeeIds().stream().map(String::valueOf).collect(Collectors.joining(","));
+        List<UserDto> users = userServiceClient.getUsers(ids).getBody();
+        resultDto.add(mapToUserWithCompanyDto(company, users));
       }
     }
 

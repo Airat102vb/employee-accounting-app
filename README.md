@@ -35,15 +35,19 @@ There are two profiles for start: `local`; `docker`.
    
       # Get all companies with users
       curl --location 'http://localhost:8082/company-service/company'
+   
+      # Get users by list of ids
+      curl --location 'http://localhost:8082/user-service/user' \
+      --header 'X-Employee-IDs: 1,2'
       ```
    **OR** by launch `generate_test_data.py` and test by
 
    ```bash
    # Get users with pagination
-   curl --location 'http://localhost:8082/user-service/user?pageNumber=0&pageSize=2'
+   curl --location 'http://localhost:8082/user-service/user/page?pageNumber=0&pageSize=2'
    
    # Get companies with pagination
-   curl --location 'http://localhost:8082/company-service/company?pageNumber=0&pageSize=2'
+   curl --location 'http://localhost:8082/company-service/company/page?pageNumber=0&pageSize=2'
    ```
 ---
 <b>Query examples: user-service</b>  

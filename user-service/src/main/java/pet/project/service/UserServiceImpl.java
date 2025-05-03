@@ -5,6 +5,7 @@ import static pet.project.mapper.UserMapper.mapToUserDto;
 import static pet.project.mapper.UserMapper.mapToUserWithCompanyDto;
 
 import jakarta.validation.Valid;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -61,6 +62,34 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  public PageImpl<UserWithCompanyDto> getUsers(int pageNumber, int pageSize) {
+    List<UserWithCompanyDto> resultDto = new LinkedList<>();
+    Page<User> users = userRepositoryHibernate.findAll(PageRequest.of(pageNumber, pageSize));
+
+    for (User user : users) {
+      CompanyWithUsersDto companyDto =
+          companyServiceClient.getCompany(user.getCompanyId(), false).getBody();
+      resultDto.add(mapToUserWithCompanyDto(user, companyDto.companyName()));
+    }
+
+    PageImpl<UserWithCompanyDto> page =
+        new PageImpl<>(resultDto, PageRequest.of(pageNumber, pageSize), users.getTotalElements());
+    log.info(
+        "Успешно получен список сотрудников с параметрами pageNumber = {}, pageSize = {}",
+        pageNumber,
+        pageSize);
+    return page;
+  }
+
+  @Override
+  public List<UserDto> getUsers(String employeeIds) {
+    List<Integer> ids = Arrays.stream(employeeIds.split(",")).map(Integer::parseInt).toList();
+    List<UserDto> users = mapToUserDto(userRepositoryHibernate.findAllById(ids));
+    log.info("Успешно получен список сотрудников: {}", users);
+    return users;
+  }
+
+  @Override
   public UserDto update(Integer userId, @Valid UserDto newUserData) {
     User user =
         userRepositoryHibernate
@@ -79,25 +108,5 @@ public class UserServiceImpl implements UserService {
   public void deleteUser(Integer userId) {
     userRepositoryHibernate.deleteById(userId);
     log.info("Сотрудник удален: {}", userId);
-  }
-
-  @Override
-  public PageImpl<UserWithCompanyDto> getUsers(int pageNumber, int pageSize) {
-    List<UserWithCompanyDto> resultDto = new LinkedList<>();
-    Page<User> users = userRepositoryHibernate.findAll(PageRequest.of(pageNumber, pageSize));
-
-    for (User user : users) {
-      CompanyWithUsersDto companyDto =
-          companyServiceClient.getCompany(user.getCompanyId(), false).getBody();
-      resultDto.add(mapToUserWithCompanyDto(user, companyDto.companyName()));
-    }
-
-    PageImpl<UserWithCompanyDto> page =
-        new PageImpl<>(resultDto, PageRequest.of(pageNumber, pageSize), users.getTotalElements());
-    log.info(
-        "Успешно получен список сотрудников с параметрами pageNumber = {}, pageSize = {}",
-        pageNumber,
-        pageSize);
-    return page;
   }
 }
